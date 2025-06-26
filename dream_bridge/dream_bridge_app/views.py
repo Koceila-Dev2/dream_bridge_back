@@ -5,8 +5,11 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from .models import Dream
 from .forms import DreamForm
-from .tasks import process_dream_audio_task  # Assure-toi que ce fichier tasks.py existe
+from .tasks import process_dream_audio_task  
+from django.contrib.auth.decorators import login_required 
 
+
+@login_required
 def dream_create_view(request):
     """
     Gère l'affichage du formulaire (GET) et son traitement (POST).
@@ -31,7 +34,7 @@ def dream_create_view(request):
                     temp_f.write(chunk)
             
             # 3. Créer l'objet Dream dans la BDD (statut PENDING par défaut)
-            dream = Dream.objects.create()
+            dream = Dream.objects.create(user=request.user) 
             
             # 4. Lancer la tâche de fond Celery
             process_dream_audio_task.delay(dream.id, temp_path)

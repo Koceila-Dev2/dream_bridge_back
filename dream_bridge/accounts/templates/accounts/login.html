@@ -1,0 +1,22 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Connexion - Dream Bridge{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="process-card">
+                    <h3 class="process-title">Connexion</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-light mt-3">Se connecter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

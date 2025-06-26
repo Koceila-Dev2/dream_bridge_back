@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Inclure les URLs de notre application dream_bridge_app
     path('', include('dream_bridge_app.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
 
 # Cette condition n'est vraie qu'en mode DÉVELOPPEMENT (DEBUG=True)
