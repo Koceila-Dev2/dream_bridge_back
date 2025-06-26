@@ -1,7 +1,8 @@
 from django.urls import path
-
-from . import views
+from .views import dream_create_view, dream_status_view
 
 urlpatterns = [
-    path("homepage", views.home_page, name="home_page"),
+    path('', dream_create_view, name='home'),
+
+    path('dreams/<uuid:dream_id>/status/', dream_status_view, name='dream-status'),
 ]
