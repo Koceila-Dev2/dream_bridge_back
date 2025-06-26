@@ -1,5 +1,4 @@
 from django.db import models
-from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import (
@@ -62,10 +61,20 @@ from django.contrib.auth.models import (
 
 
 class Dream(models.Model):
+
+    EMOTIONS = [
+        ('joie', 'Joie'),
+        ('tristesse', 'Tristesse'),
+        ('colère', 'Colère'),
+        ('peur', 'Peur'),
+        ('surprise', 'Surprise'),
+        ('dégoût', 'Dégoût'),
+    ]
     
     transcription = models.TextField('transcription du rêve')
     date = models.DateTimeField('date du rêve', default=timezone.now)
     image64 = models.TextField('image encodée en base64', blank=True, null=True)
+    emotion = models.CharField(max_length=20, choices=EMOTIONS)
 
     def __str__(self):
         return self.image64

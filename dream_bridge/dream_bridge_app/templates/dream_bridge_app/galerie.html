@@ -1,0 +1,31 @@
+<h1>Galerie filtrée</h1>
+
+<form method="get">
+    <label for="emotion">Émotion :</label>
+    <select name="emotion" id="emotion">
+        <option value="all">Toutes</option>
+        {% for emo in emotions %}
+            <option value="{{ emo }}" {% if emo == selected_emotion %}selected{% endif %}>{{ emo }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="date">Date :</label>
+    <input type="date" name="date" id="date" value="{{ selected_date }}">
+
+    <button type="submit">Filtrer</button>
+</form>
+
+<hr>
+
+{% if images %}
+    {% for img in images %}
+        <div style="margin-bottom: 20px;">
+            <p><strong>{{ img.nom }}</strong> — {{ img.date }} — {{ img.emotion }}</p>
+            <img src="data:image/webp;base64,{{ img.image64 }}" alt="Image"/>
+
+
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Aucune image ne correspond aux filtres.</p>
+{% endif %}
