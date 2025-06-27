@@ -1,13 +1,26 @@
-# dream_bridge_app/views.py
 import tempfile
 import uuid
+
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from .models import Dream
-from .forms import DreamForm
-from .tasks import process_dream_audio_task  
-from django.contrib.auth.decorators import login_required 
+from django.db.models import Q
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 
+from .models import Dream
+from .forms import DreamForm, UserRegisterForm
+from .tasks import process_dream_audio_task
+
+
+
+
+
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'dream_bridge_app/home.html') 
+  
+  
 
 @login_required
 def dream_create_view(request):
@@ -47,7 +60,43 @@ def dream_create_view(request):
 
     # Rendre le template en lui passant le formulaire dans le contexte
     return render(request, 'dream_bridge_app/home.html', {'form': form})
+  
+@login_required
+def dashboard(request):
+    return render(request, 'dream_bridge_app/dashboard.html') 
+ 
+@login_required
+def galerie_filtrée(request):
+    emotion_filtrée = request.GET.get('emotion')
+    date_filtrée = request.GET.get('date')
 
+    images = Dream.objects.all()
+
+    if emotion_filtrée and emotion_filtrée != "all":
+        images = images.filter(emotion=emotion_filtrée)
+
+    if date_filtrée:
+        images = images.filter(date__date=date_filtrée)
+
+
+    # pour la liste déroulante des émotions
+    emotions_disponibles = Dream.objects.values_list('emotion', flat=True).distinct()
+
+    return render(request, 'dream_bridge_app/galerie.html', {
+        'images': images,
+        'emotions': emotions_disponibles,
+        'selected_emotion': emotion_filtrée,
+        'selected_date': date_filtrée,
+    })
+  
+  
+
+  
+@login_required
+def library(request):
+    return render(request, 'dream_bridge_app/library.html')
+  
+@login_required
 def dream_status_view(request, dream_id):
     """
     Affiche le statut d'un rêve. (Assure-toi que ce template existe aussi)

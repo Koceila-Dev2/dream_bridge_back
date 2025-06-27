@@ -1,5 +1,4 @@
 from django.db import models
-from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import (
@@ -57,12 +56,25 @@ class Dream(models.Model):
     # auto_now=True met à jour le champ à chaque appel de .save()
     updated_at = models.DateTimeField(auto_now=True)
 
+
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='dreams' # Permet d'accéder aux rêves depuis un user : user.dreams.all()
     )
 
+    EMOTIONS = [
+        ('joie', 'Joie'),
+        ('tristesse', 'Tristesse'),
+        ('colère', 'Colère'),
+        ('peur', 'Peur'),
+        ('surprise', 'Surprise'),
+        ('dégoût', 'Dégoût'),
+    ]
+    
+    emotion = models.CharField(max_length=20, choices=EMOTIONS)
+    
     def __str__(self) -> str:
         """
         Une représentation textuelle claire et concise, utile dans l'admin Django.
