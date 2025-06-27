@@ -35,6 +35,26 @@
             display: flex; flex-direction: column; justify-content: center;
         }
     </style>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">Dream Bridge</a>
+            <div class="d-flex">
+                {% if user.is_authenticated %}
+                <span class="navbar-text me-3">
+                    Bonjour, {{ user.username }}
+                </span>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light">Déconnexion</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
+                <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
+            {% endif %}
+            </div>
+        </div>
+    </nav>
 </head>
 <body>
     <div class="floating-particles" id="particles"></div>
@@ -63,5 +83,8 @@
             document.querySelector('.floating-particles').style.transform = 'translateY(' + (window.pageYOffset * 0.5) + 'px)';
         });
     </script>
+
+    {% block scripts %}{% endblock %}
+
 </body>
 </html>

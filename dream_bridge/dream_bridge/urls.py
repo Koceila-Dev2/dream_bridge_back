@@ -1,23 +1,21 @@
-"""
-URL configuration for dream_bridge project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+# dream_bridge/urls.py (Version finale et complète)
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path, include
+
+# On importe les deux lignes nécessaires
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("dreambridge/", include("dream_bridge_app.urls")),
+    # Inclure les URLs de notre application dream_bridge_app
+    path('', include('dream_bridge_app.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
+
+# Cette condition n'est vraie qu'en mode DÉVELOPPEMENT (DEBUG=True)
+if settings.DEBUG:
+    # On dit à Django d'ajouter une nouvelle règle :
+    # "Pour toute URL qui commence par MEDIA_URL, va chercher le fichier correspondant
+    # dans le dossier MEDIA_ROOT."
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
