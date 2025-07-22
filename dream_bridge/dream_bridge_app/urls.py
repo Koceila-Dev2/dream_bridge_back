@@ -1,6 +1,9 @@
 from django.urls import path
 
-from .views import *
+from . import views
+from .views import dream_create_view, dream_status_view
+
+
 
 urlpatterns = [
     path('', views.home, name='home'),

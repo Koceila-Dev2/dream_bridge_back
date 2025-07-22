@@ -124,6 +124,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 

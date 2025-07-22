@@ -8,7 +8,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 
 from .models import Dream
-from .forms import DreamForm, UserRegisterForm
+from .forms import DreamForm
 from .tasks import process_dream_audio_task
 
 
@@ -68,7 +68,7 @@ def dashboard(request):
 @login_required
 def galerie_filtrée(request):
     emotion_filtrée = request.GET.get('emotion')
-    date_filtrée = request.GET.get('date')
+    date_filtrée = request.GET.get('created_at')
 
     images = Dream.objects.all()
 
