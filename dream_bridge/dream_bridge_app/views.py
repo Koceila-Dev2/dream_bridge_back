@@ -59,7 +59,7 @@ def dream_create_view(request):
         form = DreamForm()
 
     # Rendre le template en lui passant le formulaire dans le contexte
-    return render(request, 'dream_bridge_app/home.html', {'form': form})
+    return render(request, 'dream_bridge_app/narrate.html', {'form': form})
   
 @login_required
 def dashboard(request):
@@ -70,7 +70,8 @@ def galerie_filtrée(request):
     emotion_filtrée = request.GET.get('emotion')
     date_filtrée = request.GET.get('created_at')
 
-    images = Dream.objects.all()
+    images = Dream.objects.filter(status='COMPLETED', generated_image__isnull=False)
+
 
     if emotion_filtrée and emotion_filtrée != "all":
         images = images.filter(emotion=emotion_filtrée)
