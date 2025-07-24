@@ -107,3 +107,4 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             dream.status = Dream.DreamStatus.FAILED
             dream.error_message = f"Une erreur est survenue lors du traitement: {str(e)}"
             dream.save(update_fields=['status', 'error_message', 'updated_at'])
+
