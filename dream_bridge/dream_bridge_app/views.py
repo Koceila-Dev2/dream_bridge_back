@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Dream
 from .forms import DreamForm
 from .tasks import process_dream_audio_task
+from .services import get_daily_message
 
 
 
@@ -100,11 +101,18 @@ def library(request):
 @login_required
 def dream_status_view(request, dream_id):
     """
-    Affiche le statut d'un rêve. (Assure-toi que ce template existe aussi)
+    Affiche le statut d'un rêve, l'image générée si prête,
+    et le message du jour (horoscope ou citation).
     """
     try:
         dream = Dream.objects.get(id=dream_id)
     except Dream.DoesNotExist:
         return redirect('home')
 
-    return render(request, 'dream_bridge_app/dream_status.html', {'dream': dream})
+    # --- NOUVEAU : récupérer le message du jour pour l'utilisateur ---
+    daily_message = get_daily_message(request.user.id)
+
+    return render(request, 'dream_bridge_app/dream_status.html', {
+        'dream': dream,
+        'daily_message': daily_message
+    })
