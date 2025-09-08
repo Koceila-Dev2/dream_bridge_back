@@ -2,6 +2,8 @@
 
 import pickle
 import os
+import json 
+import numpy as np 
 from django.conf import settings
 from django.core.files.base import ContentFile
 from groq import Groq
@@ -15,6 +17,8 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 
 from .models import Dream
+
+MISTRAL_API_KEY=settings.MISTRAL_API_KEY
 
 def get_system_prompt() -> str:
     """Lit le prompt système depuis context.txt ou fournit un fallback."""
@@ -31,6 +35,74 @@ def get_system_prompt() -> str:
         - Conclus toujours par des mots-clés de style comme "photorealistic, cinematic lighting, high detail, 8k".
         - NE réponds QUE par le prompt, sans aucune phrase d'introduction ou de conclusion.
         """
+    
+
+
+def read_context_file(filename="context.txt"):
+    """Lit un fichier de contexte depuis le dossier de l'application."""
+    context_path = os.path.join(settings.BASE_DIR, 'dream_bridge_app', filename)
+    try:
+        with open(context_path, "r", encoding="utf-8") as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Fichier {filename} non trouvé.")
+        return ""
+    
+
+
+
+
+
+def get_emotion_from_text(transcription: str) -> str:
+    """
+    Analyse la transcription pour en déduire l'émotion principale en utilisant l'API Mistral.
+    """
+   
+
+    try:
+        mistral_client = Mistral(api_key=MISTRAL_API_KEY)
+
+        system_prompt = read_context_file("context_emotion.txt")
+        if not system_prompt:
+            return "erreur"
+
+        print("Appel à l'API Mistral pour l'analyse des émotions...")
+        
+        model = "mistral-large-latest"
+
+        client = mistral_client
+
+        chat_response = client.chat.complete(
+            model = model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": f"Analyse le texte ci-dessous. Ta réponse doit être un dictionnaire JSON valide avec des émotions en clé et des scores entre 0 et 1 en valeur. Ne mets pas de texte, uniquement du JSON : {transcription}",
+                },
+            ],
+            response_format={"type": "json_object",}
+        )
+        # --- FIN DE LA CORRECTION ---
+        
+        prediction_str = chat_response.choices[0].message.content
+        emotions_scores = json.loads(prediction_str)
+        
+        if not emotions_scores:
+            return "neutre"
+            
+        dominant_emotion = max(emotions_scores, key=emotions_scores.get)
+        return dominant_emotion
+            
+    except Exception as e:
+        print(f"Erreur lors de l'appel à l'API Mistral : {e}")
+        return "erreur"
+    
+
+
 
 def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
     """
@@ -51,6 +123,11 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             dream.image_prompt = simulation_data['image_prompt']
             file_bytes = simulation_data['image_bytes']
             dream.save(update_fields=['transcription', 'image_prompt', 'updated_at'])
+
+            print(f"[{dream.id}] Étape 2: Analyse des émotions...")
+            dream.emotion = get_emotion_from_text(dream.transcription)
+            dream.save(update_fields=['emotion'])
+
             print(f"[{dream.id}] Simulation chargée avec succès.")
         else:
             # Initialisation des clients API
@@ -65,6 +142,10 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                     file=audio_file, model="whisper-large-v3", language="fr"
                 )
             dream.transcription = transcription.text
+
+            print(f"[{dream.id}] Étape 2: Analyse des émotions...")
+            dream.emotion = get_emotion_from_text(dream.transcription)
+            dream.save(update_fields=['emotion'])
             
             completion = groq_client.chat.completions.create(
                 model="llama3-70b-8192", 

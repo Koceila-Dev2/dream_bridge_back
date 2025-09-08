@@ -61,6 +61,7 @@
                         {% endif %}
 
                         <div class="text-start mt-4">
+                            <p><strong>Émotion dominante :</strong><br><em class="opacity-75">{{ dream.get_emotion_display }}</em></p>
                             <p><strong>Transcription :</strong><br><em class="opacity-75">"{{ dream.transcription }}"</em></p>
                             <p><strong>Prompt utilisé :</strong><br><em class="opacity-75">"{{ dream.image_prompt }}"</em></p>
                         </div>
