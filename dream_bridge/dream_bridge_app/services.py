@@ -210,10 +210,15 @@ def get_daily_message(user_id, day="TODAY"):
     except User.DoesNotExist:
         return "Utilisateur non trouvé."
 
-    if getattr(user, "astro", 0) == 1:
+    # Vérifier si l'utilisateur a bien un profil
+    if not hasattr(user, "profile"):
+        return "Profil utilisateur introuvable."
+
+    profile = user.profile  # ton UserProfile lié
+
+    if profile.believes_in_astrology:
         # Horoscope
-        birth_date = getattr(user, "date_joined", None)
-        #modifier la date quand bdd à jour
+        birth_date = profile.birth_date
         if not birth_date:
             return "La date de naissance de l'utilisateur est inconnue."
 
@@ -240,4 +245,5 @@ def get_daily_message(user_id, day="TODAY"):
     else:
         # Citation du jour
         return get_quote_of_the_day()
+
 
