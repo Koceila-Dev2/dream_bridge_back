@@ -64,7 +64,8 @@
                             <p><strong>Transcription :</strong><br><em class="opacity-75">"{{ dream.transcription }}"</em></p>
                             <p><strong>Prompt utilisé :</strong><br><em class="opacity-75">"{{ dream.image_prompt }}"</em></p>
                         </div>
-
+                        <h3>Message du jour :</h3>
+                        <p>{{ daily_message }}</p>
                     {% elif dream.status == 'FAILED' %}
                         <div class="process-icon">⚠️</div>
                         <h3 class="process-title">Une erreur est survenue</h3>
