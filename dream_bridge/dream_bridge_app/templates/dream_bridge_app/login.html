@@ -6,8 +6,15 @@
     <div class="card shadow-lg p-4 border-0" style="max-width: 400px; width: 100%; backdrop-filter: blur(12px); background-color: rgba(255,255,255,0.1);">
         <h2 class="text-center mb-3 text-white">🌙 Dream Bridge</h2>
         <p class="text-center text-white mb-4">Connecte-toi pour accéder à ton univers de rêves</p>
-        <form method="post" novalidate>
+
+        <form method="post" action="{% url 'login' %}" novalidate>
             {% csrf_token %}
+
+            {# erreurs non liées à un champ (identifiants invalides, etc.) #}
+            {% if form.non_field_errors %}
+                <div class="text-danger small mb-2">{{ form.non_field_errors }}</div>
+            {% endif %}
+
             {% for field in form %}
                 <div class="mb-3">
                     {{ field.label_tag }}
@@ -17,12 +24,19 @@
                     {% endif %}
                 </div>
             {% endfor %}
+
+            {# si une redirection "next" est présente #}
+            {% if next %}
+              <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
             <div class="d-grid">
                 <button type="submit" class="btn text-white btn-lg" style="background-color: #6f42c1;">Connexion</button>
             </div>
         </form>
+
         <div class="text-center mt-3">
-            <a href="{% url 'register' %}" class="text-light small">Créer un compte</a><br>
+            <a href="{% url 'signup' %}" class="text-light small">Créer un compte</a><br>
             <a href="{% url 'password_reset' %}" class="text-light small">Mot de passe oublié ?</a>
         </div>
     </div>
