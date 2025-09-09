@@ -6,21 +6,37 @@
     <div class="card shadow-lg p-4 border-0" style="max-width: 400px; width: 100%; backdrop-filter: blur(12px); background-color: rgba(255,255,255,0.1);">
         <h2 class="text-center mb-3 text-white">Créer un compte</h2>
         <p class="text-center text-white mb-4">Bienvenue dans l'univers des rêves</p>
+
         <form method="post">
             {% csrf_token %}
+
             {% for field in form %}
-                <div class="mb-3">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                        <div class="text-danger small">{{ field.errors }}</div>
-                    {% endif %}
-                </div>
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="form-check mb-3">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
             {% endfor %}
+
             <div class="d-grid">
                 <button type="submit" class="btn text-white btn-lg" style="background-color: #6f42c1;">S'inscrire</button>
             </div>
         </form>
+
         <div class="text-center mt-3">
             <a href="{% url 'login' %}" class="text-light small">Déjà inscrit ? Se connecter</a>
         </div>
@@ -28,9 +44,7 @@
 </div>
 
 <style>
-    label {
-        color: white;
-    }
+    label { color: white; }
     input, select, textarea {
         background-color: rgba(111, 66, 193, 0.2);
         border: none;
@@ -39,8 +53,12 @@
         padding: 10px;
         width: 100%;
     }
-    input::placeholder {
-        color: rgba(255, 255, 255, 0.7);
+    /* la checkbox ne doit pas prendre 100% de largeur */
+    input[type="checkbox"] {
+        width: auto;
+        margin-right: .5rem;
+        accent-color: #6f42c1;
     }
+    input::placeholder { color: rgba(255, 255, 255, 0.7); }
 </style>
 {% endblock %}

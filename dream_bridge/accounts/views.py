@@ -1,13 +1,26 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import LoginView, LogoutView
+from django.shortcuts import redirect
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from .forms import CustomUserCreationForm, CustomUserCreationForm
+from django.views.decorators.http import require_http_methods
+
+from .forms import CustomUserCreationForm
 
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
-    template_name = 'account/signup.html'
+    # ton template d'inscription existant
+    template_name = 'dream_bridge_app/register.html'
     success_url = reverse_lazy('login')
+
+
+@require_http_methods(["GET", "POST"])
+def logout_to_home(request):
+    """
+    Déconnecte l'utilisateur puis redirige vers la page d'accueil.
+    Accepte GET et POST (évite les 405 si l'URL est ouverte directement).
+    """
+    logout(request)
+    messages.success(request, "Vous avez été déconnecté.")
+    return redirect('home')

@@ -35,33 +35,44 @@
             display: flex; flex-direction: column; justify-content: center;
         }
     </style>
-
+</head>
+<body>
+    <!-- NAVBAR DOIT ÊTRE DANS LE BODY -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">Dream Bridge</a>
-            <div class="d-flex">
-                {% if user.is_authenticated %}
-                <span class="navbar-text me-3">
-                    Bonjour, {{ user.username }}
-                </span>
-                <form action="{% url 'logout' %}" method="post" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-light">Déconnexion</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
-                <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
-            {% endif %}
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- Ajoute ici tes liens de nav si besoin -->
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <span class="navbar-text me-3">
+                            👤 {{ user.username }}
+                        </span>
+                        <form action="{% url 'logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light">Déconnexion</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
+                        <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
-</head>
-<body>
+
     <div class="floating-particles" id="particles"></div>
 
     <div class="content-wrapper">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -80,11 +91,11 @@
         }
         document.addEventListener('DOMContentLoaded', createParticles);
         window.addEventListener('scroll', () => {
-            document.querySelector('.floating-particles').style.transform = 'translateY(' + (window.pageYOffset * 0.5) + 'px)';
+            document.querySelector('.floating-particles').style.transform =
+                'translateY(' + (window.pageYOffset * 0.5) + 'px)';
         });
     </script>
 
     {% block scripts %}{% endblock %}
-
 </body>
 </html>
