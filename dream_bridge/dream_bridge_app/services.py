@@ -210,7 +210,7 @@ def get_daily_message(user_id, day="TODAY"):
     except User.DoesNotExist:
         return "Utilisateur non trouvé."
 
-    if getattr(user, "astro", 0) == 0:
+    if getattr(user, "astro", 0) == 1:
         # Horoscope
         birth_date = getattr(user, "date_joined", None)
         #modifier la date quand bdd à jour
