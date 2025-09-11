@@ -13,13 +13,13 @@
         <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'dashboard' %}">🏠 Accueil</a>
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'narrate' %}">🎙️ Raconter</a>
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'galerie' %}">📚 Bibliothèque</a>
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
             </li>
           </ul>
           <div class="d-flex align-items-center">
@@ -84,7 +84,7 @@
 
                     <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
                     <div class="d-flex justify-content-center gap-2">
-                        <a href="{% url 'narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
+                        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
                     </div>
                     <p class="mt-3 opacity-50"><small>ID du rêve : {{ dream.id }}</small></p>
 

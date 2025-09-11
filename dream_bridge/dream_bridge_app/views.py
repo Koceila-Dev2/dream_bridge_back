@@ -53,7 +53,7 @@ def dream_create_view(request):
             process_dream_audio_task.delay(str(dream.id), temp_path)
             
             # 5. Rediriger l'utilisateur vers la page de statut
-            return redirect(reverse('dream-status', kwargs={'dream_id': dream.id}))
+            return redirect(reverse('dream_bridge_app:dream-status', kwargs={'dream_id': dream.id}))
     else:
         # Si c'est une requête GET, créer un formulaire vide
         form = DreamForm()
