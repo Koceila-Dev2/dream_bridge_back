@@ -1,10 +1,10 @@
 import os
-from celery import shared_task
+from dream_bridge.celery import app
 from .services import orchestrate_dream_generation
 
 # bind=True permet d'accéder à l'instance de la tâche (self)
-@shared_task(bind=True)
-def process_dream_audio_task(self, dream_id: str, temp_audio_path: str):
+@app.task
+def process_dream_audio_task(dream_id: str, temp_audio_path: str):
     """
     Celery task that receives a temporary file path for processing.
     It ensures the temporary file is deleted after execution.

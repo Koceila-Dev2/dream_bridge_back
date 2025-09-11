@@ -11,13 +11,13 @@
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dashboard' %}">🏠 Accueil</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'narrate' %}">🎙️ Raconter</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'galerie' %}">📚 Bibliothèque</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
         </li>
       </ul>
 
@@ -40,7 +40,7 @@
                 <div class="fs-2 mb-2">🎙️</div>
                 <h4>Raconter un rêve</h4>
                 <p>Exprimez-vous à voix haute. L'IA se charge de tout transformer.</p>
-                <a href="{% url 'narrate' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Commencer</a>
+                <a href="{% url 'dream_bridge_app:narrate' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Commencer</a>
             </div>
         </div>
         <div class="col-md-4 mb-4">
@@ -48,7 +48,7 @@
                 <div class="fs-2 mb-2">📚</div>
                 <h4>Ma bibliothèque</h4>
                 <p>Accédez à tous vos rêves enregistrés et illustrés.</p>
-                <a href="{% url 'galerie' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Voir</a>
+                <a href="{% url 'dream_bridge_app:galerie' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Voir</a>
             </div>
         </div>
     </div>

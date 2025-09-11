@@ -12,8 +12,8 @@
                     <p class="process-description" id="recorder-instructions">
                         Cliquez sur "Démarrer" pour commencer l'enregistrement de votre récit.
                     </p>
-                    
-                    <div id="recorder-ui" class="mt-4" data-upload-url="{% url 'home' %}">
+
+                    <div id="recorder-ui" class="mt-4" data-upload-url="{% url 'dream_bridge_app:home' %}">
                         {% csrf_token %}
                         <button id="startButton" class="btn btn-light">Démarrer l'enregistrement</button>
                         <button id="stopButton" class="btn btn-danger" disabled>Arrêter l'enregistrement</button>
