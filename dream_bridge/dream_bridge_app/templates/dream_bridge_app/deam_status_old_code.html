@@ -1,0 +1,341 @@
+{% extends "dream_bridge_app/base.html" %}
+
+{% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
+
+{% block content %}
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
+     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
+            </li>
+          </ul>
+          <div class="d-flex align-items-center">
+            <span class="me-3 text-white">👤 {{ user.username }}</span>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+            </form>
+          </div>
+        </div>
+    </div>
+</nav>
+<main class="main-content depth-layer"> 
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="process-card fade-in-up" 
+                     id="status-container" 
+                     data-check-url="{% url 'dream_bridge_app:check-dream-status-api' dream_id=dream.id %}"
+                     data-status="{{ dream.status }}">
+                    
+                    {% if dream.status == 'PENDING' or dream.status == 'PROCESSING' %}
+                        <div class="process-icon">
+                            <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <h3 class="process-title mt-3">Synthèse en cours...</h3>
+                        <p class="process-description" id="loading-message" style="min-height: 48px; transition: opacity 0.5s ease-in-out;">
+                            Nos algorithmes interprètent votre rêve...
+                        </p>
+                        <h3>Message du jour :</h3>
+                        <p>{{ daily_message }}</p>
+                    
+                    {% elif dream.status == 'COMPLETED' %}
+                        <div class="process-icon">✨</div>
+                        <h3 class="process-title">Votre Rêve Visualisé</h3>
+                        <p class="process-description">Voici l'interprétation artistique de votre récit.</p>
+                        
+                        {% if dream.generated_image %}
+                        <div class="mt-4 shadow rounded p-2" style="background: rgba(0,0,0,0.2);">
+                            <img src="{{ dream.generated_image.url }}" class="img-fluid rounded" alt="Image générée du rêve">
+                        </div>
+                        {% endif %}
+
+                        <div class="text-start mt-4">
+                            <p><strong>Émotion dominante :</strong><br><em class="opacity-75">{{ dream.get_emotion_display }}</em></p>
+                            <p><strong>Transcription :</strong><br><em class="opacity-75">"{{ dream.transcription }}"</em></p>
+                            <p><strong>Prompt utilisé :</strong><br><em class="opacity-75">"{{ dream.image_prompt }}"</em></p>
+                        </div>
+                        <h3>Message du jour :</h3>
+                        <p>{{ daily_message }}</p>
+                    
+                    {% elif dream.status == 'FAILED' %}
+                        <div class="process-icon">⚠️</div>
+                        <h3 class="process-title">Une erreur est survenue</h3>
+                        <p class="process-description text-danger">
+                            Nous n'avons pas pu traiter votre rêve.
+                        </p>
+                        <div class="alert alert-danger mt-3">
+                            <strong>Détail de l'erreur :</strong> {{ dream.error_message }}
+                        </div>
+                    {% endif %}
+
+                    <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
+                    </div>
+                    <p class="mt-3 opacity-50"><small>ID du rêve : {{ dream.id }}</small></p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const statusContainer = document.getElementById('status-container');
+    if (!statusContainer) return;
+
+    const checkUrl = statusContainer.dataset.checkUrl;
+    const initialStatus = statusContainer.dataset.status;
+
+    if (initialStatus !== 'PENDING' && initialStatus !== 'PROCESSING') {
+        return;
+    }
+
+    const loadingMessage = document.getElementById('loading-message');
+    const messages = [
+        "Analyse de la sémantique...",
+        "Interprétation des symboles...",
+        "Connexion au subconscient...",
+        "Construction du pont onirique...",
+        "Coloration des émotions...",
+        "Finalisation de la vision..."
+    ];
+    let messageIndex = 0;
+
+    const messageInterval = setInterval(() => {
+        if (loadingMessage) {
+            loadingMessage.style.opacity = 0;
+            setTimeout(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                loadingMessage.textContent = messages[messageIndex];
+                loadingMessage.style.opacity = 1;
+            }, 500);
+        }
+    }, 4000);
+
+    const statusInterval = setInterval(() => {
+        fetch(checkUrl)
+            .then(response => {
+                if (!response.ok) { throw new Error('Network response was not ok'); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+                    clearInterval(statusInterval);
+                    clearInterval(messageInterval);
+                    window.location.href = data.status_url;
+                }
+            })
+            .catch(error => {
+                console.error("Erreur de polling:", error);
+                clearInterval(statusInterval);
+                clearInterval(messageInterval);
+                if(loadingMessage) {
+                    loadingMessage.textContent = "Erreur de connexion. Veuillez rafraîchir la page.";
+                }
+            });
+    }, 3000);
+});
+</script>
+{% endblock %}
+
+{% extends "dream_bridge_app/base.html" %}
+{% load static %}
+
+{% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
+
+{% block content %}
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
+     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
+            </li>
+          </ul>
+          <div class="d-flex align-items-center">
+            <span class="me-3 text-white">👤 {{ user.username }}</span>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+            </form>
+          </div>
+        </div>
+    </div>
+</nav>
+
+<main class="main-content depth-layer"> 
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <!-- Ecran d'attente toujours affiché au départ -->
+                <div id="loading-screen" class="process-card fade-in-up" 
+                     data-check-url="{% url 'dream_bridge_app:check-dream-status-api' dream_id=dream.id %}"
+                     data-status="{{ dream.status }}">
+                     
+                    <div class="process-icon">
+                        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <h3 class="process-title mt-3">Synthèse en cours...</h3>
+                    <p class="process-description" id="loading-message" style="min-height: 48px; transition: opacity 0.5s ease-in-out;">
+                        Nos algorithmes interprètent votre rêve...
+                    </p>
+                    <h3>Message du jour :</h3>
+                    <p>{{ daily_message }}</p>
+                </div>
+
+                <!-- Contenu résultat caché au départ -->
+                <div id="dream-content" class="process-card fade-in-up" style="display:none;">
+
+                    <div class="process-icon">✨</div>
+                    <h3 class="process-title">Votre Rêve Visualisé</h3>
+                    <p class="process-description">Voici l'interprétation artistique de votre récit.</p>
+                    
+                    {% if dream.generated_image %}
+                    <div class="mt-4 shadow rounded p-2" style="background: rgba(0,0,0,0.2);">
+                        <img src="{{ dream.generated_image.url }}" class="img-fluid rounded" alt="Image générée du rêve">
+                    </div>
+                    {% endif %}
+
+                    <div class="text-start mt-4">
+                        <p><strong>Émotion dominante :</strong><br><em class="opacity-75">{{ dream.get_emotion_display }}</em></p>
+                        <p><strong>Transcription :</strong><br><em class="opacity-75">"{{ dream.transcription }}"</em></p>
+                        <p><strong>Prompt utilisé :</strong><br><em class="opacity-75">"{{ dream.image_prompt }}"</em></p>
+                    </div>
+
+                    <h3>Message du jour :</h3>
+                    <p>{{ daily_message }}</p>
+
+                    <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
+
+            </div>
+        </div>
+    </div>
+
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const loadingScreen = document.getElementById('loading-screen');
+  const dreamContent = document.getElementById('dream-content');
+  
+  if (!loadingScreen || !dreamContent) return;
+
+  const checkUrl = loadingScreen.dataset.checkUrl;
+
+  const loadingMessage = document.getElementById('loading-message');
+  const messages = [
+    "Analyse de la sémantique...",
+    "Interprétation des symboles...",
+    "Connexion au subconscient...",
+    "Construction du pont onirique...",
+    "Coloration des émotions...",
+    "Finalisation de la vision..."
+  ];
+  let messageIndex = 0;
+
+  // Animation messages
+  const messageInterval = setInterval(() => {
+    if (loadingMessage) {
+      loadingMessage.style.opacity = 0;
+      setTimeout(() => {
+        messageIndex = (messageIndex + 1) % messages.length;
+        loadingMessage.textContent = messages[messageIndex];
+        loadingMessage.style.opacity = 1;
+      }, 500);
+    }
+  }, 4000);
+
+  // Durée en ms depuis la création (passée depuis Django en millisecondes)
+  const dreamCreatedAt = {{ created_at_timestamp|default:"0" | safe }};
+  const now = Date.now();
+  let elapsedSinceCreation = now - dreamCreatedAt;
+
+  // Affichage du contenu rêve après délai minimal
+  function showDreamAfterDelay() {
+    const remaining = 10000 - elapsedSinceCreation;
+    if (remaining > 0) {
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        dreamContent.style.display = 'block';
+        clearInterval(messageInterval);
+      }, remaining);
+    } else {
+      loadingScreen.style.display = 'none';
+      dreamContent.style.display = 'block';
+      clearInterval(messageInterval);
+    }
+  }
+
+  // Polling du statut backend
+  function checkStatus() {
+    fetch(checkUrl)
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+          clearInterval(pollInterval);
+          showDreamAfterDelay();
+        }
+      })
+      .catch(error => {
+        console.error("Erreur de polling:", error);
+        clearInterval(pollInterval);
+        clearInterval(messageInterval);
+        if (loadingMessage) {
+          loadingMessage.textContent = "Erreur de connexion. Veuillez rafraîchir la page.";
+        }
+      });
+  }
+
+  let pollInterval = setInterval(checkStatus, 3000);
+  checkStatus();
+
+  // Si déjà COMPLETED au chargement, on force affichage avec délai
+  if (elapsedSinceCreation > 0 && elapsedSinceCreation < 10000) {
+    showDreamAfterDelay();
+  }
+});
+
+</script>
+{% endblock %}

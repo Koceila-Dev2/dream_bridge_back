@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.db.models import Q
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import localtime
 
 from .models import Dream
 from .forms import DreamForm
@@ -111,9 +112,14 @@ def dream_status_view(request, dream_id):
     # --- NOUVEAU : récupérer le message du jour pour l'utilisateur ---
     daily_message = get_daily_message(request.user.id)
 
+    created_at_local = localtime(dream.created_at)
+    created_at_ts = int(created_at_local.timestamp() * 1000)
+
     return render(request, 'dream_bridge_app/dream_status.html', {
         'dream': dream,
-        'daily_message': daily_message
+        'daily_message': daily_message,
+        'created_at_timestamp': created_at_ts
+
     })
 
 @login_required
@@ -127,7 +133,7 @@ def check_dream_status_api(request, dream_id):
         # Si le rêve est terminé, on inclut l'URL de la page de statut complète
         # pour que le JavaScript puisse rediriger l'utilisateur.
         if dream.status == 'COMPLETED' or dream.status == 'FAILED':
-            status_url = reverse('dream-status', kwargs={'dream_id': dream.id})
+            status_url = reverse('dream_bridge_app:dream-status', kwargs={'dream_id': dream.id})
             return JsonResponse({'status': dream.status, 'status_url': status_url})
         else:
             return JsonResponse({'status': dream.status})

@@ -1,0 +1,213 @@
+/* Fond étoilé animé en parallax */
+body {
+  background: radial-gradient(ellipse at bottom, #232a41 0%, #0f1331 100%);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e5d7ff;
+  min-height: 100vh;
+}
+
+.parallax-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  background: transparent url('/static/dream_bridge_app/stars_parallax.png') repeat;
+  animation: moveStars 100s linear infinite;
+}
+
+@keyframes moveStars {
+  100% {
+    background-position: 1000px 2000px;
+  }
+}
+
+/* Glassmorphism : conteneur cartes */
+.glass-card {
+  position: relative;
+  max-width: 600px;
+  margin: 50px auto;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  box-shadow: 0 8px 36px rgba(10, 16, 39, 0.8);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  padding: 2rem 2.5rem;
+  z-index: 1;
+}
+
+/* Loader mystique */
+.mystic-loader {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.moon {
+  width: 48px;
+  height: 48px;
+  background: radial-gradient(circle, #fffafc 60%, #f4d8ef 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 12px #ffd5f3cc, 0 0 40px #b2affa44;
+  animation: moonFloat 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes moonFloat {
+  to {
+    transform: translateY(-10px) scale(1.05);
+  }
+}
+
+.star, .star.twinkle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffeedb;
+  margin: 0 2px;
+  box-shadow: 0 0 10px #ffeec8ff;
+}
+
+.star.twinkle {
+  animation: twinkleStar 1.1s infinite alternate;
+}
+
+@keyframes twinkleStar {
+  100% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+/* Titres et textes du loader */
+.waiting-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.04em;
+  margin: 0.8rem 0 0.5rem 0;
+  color: #e5d7ff;
+}
+
+#loading-message {
+  font-size: 1.15rem;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #b6c6ff;
+  min-height: 48px;
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Styles pour le message du jour amélioré */
+.astro-message-container {
+  background: linear-gradient(135deg, #3a2a61 40%, #6e52a3 100%);
+  border-radius: 1.2rem;
+  padding: 1.6rem 2.4rem;
+  box-shadow: 0 8px 20px rgba(110, 82, 163, 0.4);
+  color: #fff7e6;
+  margin: 2rem auto 3rem;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Georgia', serif;
+  max-width: 520px;
+  animation: slideFadeIn 0.9s ease forwards;
+}
+
+@keyframes slideFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.astro-message-icon {
+  position: absolute;
+  top: -12px;
+  left: -14px;
+  font-size: 4.3rem;
+  color: #f5c18c;
+  filter: drop-shadow(0 0 6px #ffd39a99);
+  z-index: 1;
+  animation: pulseGlow 2.5s infinite alternate;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 0 0 10px #f5c18c55, 0 0 20px #f5c18c33;
+  }
+  100% {
+    text-shadow: 0 0 22px #ffd39a, 0 0 35px #fdf6cb77;
+  }
+}
+
+.astro-heading {
+  position: relative;
+  font-weight: 700;
+  font-size: 2.2rem;
+  padding-bottom: 0.4rem;
+  text-align: center;
+  text-shadow: 0 2px 8px #462a9599, 0 0 10px #ae8de9cc;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  z-index: 2;
+}
+
+.astro-message {
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  font-size: 1.19rem;
+  line-height: 1.62;
+  z-index: 2;
+  position: relative;
+}
+
+/* Styler le contenu du rêve */
+.process-icon {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.process-title {
+  font-weight: 600;
+  font-size: 1.8rem;
+  margin-bottom: 0.3rem;
+  text-align: center;
+  color: #ffeefa;
+}
+
+.process-description {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #d4c6f7;
+}
+
+/* Responsivité */
+@media (max-width: 768px) {
+  .glass-card {
+    margin: 30px 12px;
+    padding: 1.5rem 1.8rem;
+  }
+
+  .astro-message-container {
+    max-width: 100%;
+    margin: 1.5rem auto 2rem;
+    padding: 1.2rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .astro-heading {
+    font-size: 1.8rem;
+  }
+}
