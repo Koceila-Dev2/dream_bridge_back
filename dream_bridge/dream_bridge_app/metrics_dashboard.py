@@ -51,33 +51,39 @@ def dream_frequency(user, period="7d"):
 # Répartition des émotions dominantes (camembert)
 def emotion_distribution(user, period="all"):
     qs = get_dreams_in_period(user, period)
-    emotions_sum = {}
+    emotions_count = {}
 
     for dream in qs:
-        for emotion, value in dream.emotions.items():
-            emotions_sum[emotion] = emotions_sum.get(emotion, 0) + value
+        emo = dream.emotion  # champ str
+        if emo:  # ignore les valeurs vides
+            emotions_count[emo] = emotions_count.get(emo, 0) + 1
 
-    total = sum(emotions_sum.values())
+    total = sum(emotions_count.values())
     if total == 0:
         return {}
-    
-    return {emo: round(val/total, 3) for emo, val in emotions_sum.items()}
 
-# Tendance des émotions au fil du temps (time series)
+    # Retour en proportions
+    return {emo: round(val / total, 3) for emo, val in emotions_count.items()}
+
+
+# Tendance des émotions (time series)
 def emotion_trend(user, period="7d"):
     qs = get_dreams_in_period(user, period).order_by("created_at")
     data = []
 
     for dream in qs:
-        row = {"date": dream.created_at.date()}
-        row.update(dream.emotions)
-        data.append(row)
+        # Convertir la date en string pour JSON
+        data.append({
+            "date": dream.created_at.date().isoformat(),  # <-- ici
+            "emotion": dream.emotion
+        })
 
     if not data:
         return []
 
     df = pd.DataFrame(data)
-    df = df.groupby("date").mean().reset_index()
-    
-    # Sortie en format JSON utilisable dans un graphe
+    df = df.groupby(["date", "emotion"]).size().unstack(fill_value=0)
+    df = df.reset_index()
+
     return df.to_dict(orient="records")
+

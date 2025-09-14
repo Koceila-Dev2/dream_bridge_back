@@ -13,6 +13,10 @@ from .forms import DreamForm
 from .tasks import process_dream_audio_task
 from .services import get_daily_message
 
+import json
+from django.shortcuts import render
+from .metrics_dashboard import *
+
 
 
 
@@ -122,6 +126,7 @@ def dream_status_view(request, dream_id):
 
     })
 
+
 @login_required
 def check_dream_status_api(request, dream_id):
     """
@@ -140,3 +145,23 @@ def check_dream_status_api(request, dream_id):
 
     except Dream.DoesNotExist:
         return JsonResponse({'status': 'NOT_FOUND'}, status=404)
+
+@login_required
+def dashboard_view(request):
+    user = request.user
+    period = request.GET.get("period", "7d")
+
+    td = total_dreams(user, period)
+    freq = dream_frequency(user, period)
+    ed = emotion_distribution(user, period)      # dict { "joy": 0.4, ... }
+    trend = emotion_trend(user, period)          # list[dict] [{ "date": "2025-09-01", "joy":0.5, ... }, ...]
+
+    context = {
+        "total_dreams": td,
+        "dream_frequency": freq,
+        # sérialise en JSON pour que le template puisse utiliser safe JS directement
+        "emotion_distribution": json.dumps(ed),
+        "emotion_trend": json.dumps(trend),
+        "period": period,
+    }
+    return render(request, "dream_bridge_app/report.html", context)
