@@ -327,3 +327,4 @@ def get_daily_message(user_id, day="TODAY"):
         # Citation du jour
         return get_quote_of_the_day()
 
+
