@@ -12,13 +12,13 @@
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dashboard' %}">🏠 Accueil</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'narrate' %}">🎙️ Raconter</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'galerie' %}">📚 Bibliothèque</a>
+          <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
         </li>
       </ul>
       <div class="d-flex align-items-center">
@@ -58,7 +58,7 @@
         </div>
         <div class="mt-3 d-flex gap-2">
           <button type="submit" class="btn btn-light">Appliquer</button>
-          <a href="{% url 'galerie' %}" class="btn btn-outline-light">Réinitialiser</a>
+          <a href="{% url 'dream_bridge_app:galerie' %}" class="btn btn-outline-light">Réinitialiser</a>
         </div>
       </form>
     </div>

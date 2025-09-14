@@ -23,4 +23,4 @@ def logout_to_home(request):
     """
     logout(request)
     messages.success(request, "Vous avez été déconnecté.")
-    return redirect('home')
+    return redirect('dream_bridge_app:home')
