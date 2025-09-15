@@ -5,6 +5,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+import time
+from datetime import datetime
+from time import localtime
 from .models import Dream
 from .forms import DreamForm
 from .tasks import process_dream_audio_task
@@ -14,8 +17,8 @@ from django.shortcuts import render
 from .metrics_dashboard import *
 
 def home(request):
-     if request.user.is_authenticated:
-          return redirect('dream_bridge_app:dashboard)
+    if request.user.is_authenticated:
+        return redirect('dream_bridge_app:dashboard')
  
     return render(request, 'dream_bridge_app/home.html')
 
@@ -98,13 +101,12 @@ def dream_status_view(request, dream_id):
     try:
         dream = Dream.objects.get(id=dream_id, user=request.user)
     except Dream.DoesNotExist:
-        return xcept Dream.DoesNotExist:
-        retredirect('dream_bridge_app:home')
+        return redirect('dream_bridge_app:home')
 
     daily_message = get_daily_message(request.user.id)
 
-    created_at_local = localtime(dream.created_at)
-    created_at_ts = int(created_at_local.timestamp() * 1000)
+    created_at_local = timezone.localtime(dream.created_at)  # version locale
+    created_at_ts = int(created_at_local.timestamp() * 1000)  # timestamp en ms
     return render(request, 'dream_bridge_app/dream_status.html', {
         'dream': dream,
         'daily_message': daily_message,
