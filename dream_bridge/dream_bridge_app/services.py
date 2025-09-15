@@ -573,9 +573,10 @@
 import os
 import pickle
 from datetime import datetime
-
 import requests
 from deep_translator import GoogleTranslator
+import json 
+import numpy as np 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -586,7 +587,10 @@ from mistralai.models import ToolFileChunk
 
 from .models import Dream
 
+
 User = get_user_model()  # utilisé dans get_daily_message()
+
+MISTRAL_API_KEY=settings.MISTRAL_API_KEY
 
 
 def get_system_prompt() -> str:
@@ -596,6 +600,7 @@ def get_system_prompt() -> str:
         with open(context_path, "r", encoding="utf-8") as file:
             return file.read()
     except FileNotFoundError:
+
         return (
             "Tu es un artiste onirique et un expert en interprétation des rêves. "
             "Ton rôle est de transformer la transcription d'un rêve en un prompt court, "
@@ -606,6 +611,71 @@ def get_system_prompt() -> str:
             "- Réponds uniquement par le prompt."
         )
 
+
+
+def read_context_file(filename="context.txt"):
+    """Lit un fichier de contexte depuis le dossier de l'application."""
+    context_path = os.path.join(settings.BASE_DIR, 'dream_bridge_app', filename)
+    try:
+        with open(context_path, "r", encoding="utf-8") as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Fichier {filename} non trouvé.")
+        return ""
+    
+
+
+
+
+
+def get_emotion_from_text(transcription: str) -> str:
+    """
+    Analyse la transcription pour en déduire l'émotion principale en utilisant l'API Mistral.
+    """
+   
+
+    try:
+        mistral_client = Mistral(api_key=MISTRAL_API_KEY)
+
+        system_prompt = read_context_file("context_emotion.txt")
+        if not system_prompt:
+            return "erreur"
+
+        print("Appel à l'API Mistral pour l'analyse des émotions...")
+        
+        model = "mistral-large-latest"
+
+        client = mistral_client
+
+        chat_response = client.chat.complete(
+            model = model,
+            messages = [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": f"Analyse le texte ci-dessous. Ta réponse doit être un dictionnaire JSON valide avec des émotions en clé et des scores entre 0 et 1 en valeur. Ne mets pas de texte, uniquement du JSON : {transcription}",
+                },
+            ],
+            response_format={"type": "json_object",}
+        )
+        # --- FIN DE LA CORRECTION ---
+        
+        prediction_str = chat_response.choices[0].message.content
+        emotions_scores = json.loads(prediction_str)
+        
+        if not emotions_scores:
+            return "neutre"
+            
+        dominant_emotion = max(emotions_scores, key=emotions_scores.get)
+        return dominant_emotion
+            
+    except Exception as e:
+        print(f"Erreur lors de l'appel à l'API Mistral : {e}")
+        return "erreur"
+    
 
 def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
     """Orchestre le pipeline (texte + image)."""
@@ -634,6 +704,11 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                 )
             dream.transcription = transcription.text
 
+
+            print(f"[{dream.id}] Étape 2: Analyse des émotions...")
+            dream.emotion = get_emotion_from_text(dream.transcription)
+            dream.save(update_fields=['emotion'])
+            
             completion = groq_client.chat.completions.create(
                 model="llama3-70b-8192",
                 messages=[
@@ -731,8 +806,15 @@ def get_daily_message(user_id, day="TODAY") -> str:
     except User.DoesNotExist:
         return "Utilisateur non trouvé."
 
-    if getattr(user, "astro", 0) == 1:
-        birth_date = getattr(user, "date_joined", None)  # TODO: remplacer par vraie date de naissance
+    # Vérifier si l'utilisateur a bien un profil
+    if not hasattr(user, "profile"):
+        return "Profil utilisateur introuvable."
+
+    profile = user.profile  # ton UserProfile lié
+
+    if profile.believes_in_astrology:
+        # Horoscope
+        birth_date = profile.birth_date
         if not birth_date:
             return "La date de naissance de l'utilisateur est inconnue."
         sign_fr = get_astrological_sign(birth_date)
@@ -751,9 +833,6 @@ def get_daily_message(user_id, day="TODAY") -> str:
         return f"Erreur HTTP {r.status_code} lors de la récupération."
     else:
         return get_quote_of_the_day()
-
-
-# -------- Helpers d’écriture dans Dream --------
 
 def update_daily_phrase_in_dream(user, dream_id: str | None = None):
     """

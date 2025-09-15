@@ -255,7 +255,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -263,6 +266,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
+
 # (optionnel mais pratique en dev — laisse False en dev)
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
+
+LOGIN_REDIRECT_URL = 'dream_bridge_app:home' 
+LOGOUT_REDIRECT_URL = 'dream_bridge_app:home' 
+
