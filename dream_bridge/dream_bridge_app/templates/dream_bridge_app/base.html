@@ -37,7 +37,7 @@
     </style>
 </head>
 <body>
-    <!-- NAVBAR DOIT ÊTRE DANS LE BODY -->
+    <!-- ✅ NAVBAR dans le body -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">Dream Bridge</a>
@@ -48,14 +48,13 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- Ajoute ici tes liens de nav si besoin -->
+                    <!-- Liens de navigation si besoin -->
                 </ul>
 
                 <div class="d-flex align-items-center">
                     {% if user.is_authenticated %}
-                        <span class="navbar-text me-3">
-                            👤 {{ user.username }}
-                        </span>
+                        <span class="navbar-text me-3">👤 {{ user.username }}</span>
+                        <!-- ✅ le POST contient bien le token CSRF -->
                         <form action="{% url 'logout' %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-light">Déconnexion</button>
