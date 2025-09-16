@@ -18,10 +18,9 @@ from .metrics_dashboard import *
 
 def home(request):
     if request.user.is_authenticated:
-        return redirect('dream_bridge_app:dashboard')
+        return redirect('dream_bridge_app:home_page')
  
-    return render(request, 'dream_bridge_app/home.html')
-
+    return render(request, 'dream_bridge_app/home_page.html')
 
 @login_required
 def dream_create_view(request):
@@ -49,7 +48,7 @@ def dream_create_view(request):
 
 
 @login_required
-def dashboard(request):
+def home_page(request):
     """
     Affiche la phrase/horoscope du jour et l’enregistre dans le
     dernier rêve de l’utilisateur (1×/jour).
@@ -64,7 +63,7 @@ def dashboard(request):
             pass
         request.session["quote_saved_on"] = today_key
 
-    return render(request, 'dream_bridge_app/dashboard.html', {
+    return render(request, 'dream_bridge_app/home_page.html', {
         'daily_message': daily_message,
     })
 
@@ -134,7 +133,7 @@ def check_dream_status_api(request, dream_id):
         return JsonResponse({'status': 'NOT_FOUND'}, status=404)
 
 @login_required
-def dashboard_view(request):
+def report(request):
     user = request.user
     period = request.GET.get("period", "7d")
 
