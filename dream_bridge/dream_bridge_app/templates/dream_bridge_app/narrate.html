@@ -22,8 +22,8 @@
       </ul>
 
       <div class="d-flex align-items-center">
-        <span class="me-3 text-white">👤 {{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
       </div>
     </div>
   </div>

@@ -1,0 +1,106 @@
+{% extends "dream_bridge_app/base.html" %}
+{% load static %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
+     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5 text-white">
+  {% if messages %}
+    <div class="mb-3">
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} mb-2">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h1 class="h3 mb-4">👤 Mon profil</h1>
+
+  <div class="row g-4">
+    <!-- Colonne gauche : Infos compte -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Informations du compte</h5>
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Prénom</label>
+              {{ user_form.first_name }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nom</label>
+              {{ user_form.last_name }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Adresse e-mail</label>
+              {{ user_form.email }}
+            </div>
+
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+
+            <h6 class="mb-2">Préférences</h6>
+            <div class="form-check mb-3">
+              {{ profile_form.believes_in_astrology }}
+              <label class="form-check-label ms-2" for="{{ profile_form.believes_in_astrology.id_for_label }}">
+                Je crois à l’astrologie
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-light">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : Données non modifiables -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Données personnelles (lecture seule)</h5>
+
+          <div class="mb-3">
+            <label class="form-label">Date de naissance</label>
+            <input class="form-control" value="{{ readonly.birth_date|default:'—' }}" disabled>
+            <small class="text-white-50">Non modifiable depuis l’application.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Signe astrologique</label>
+            <input class="form-control" value="{{ readonly.zodiac_sign|default:'—' }}" disabled>
+            <small class="text-white-50">Non modifiable depuis l’application.</small>
+          </div>
+
+          <div class="alert alert-info mb-0" style="background: rgba(255,255,255,0.1); border: none;">
+            Besoin de corriger ces informations ? Contacte le support.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -42,19 +42,19 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Dream Bridge</a>
+            <a class="navbar-brand" href="{% url 'dream_bridge_app:home' %}">Dream Bridge</a>
             <div class="d-flex">
                 {% if user.is_authenticated %}
                 <span class="navbar-text me-3">
                     Bonjour, {{ user.username }}
                 </span>
-                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-light">Déconnexion</button>
                 </form>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
-                <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-light me-2">Connexion</a>
+                <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light">Inscription</a>
             {% endif %}
     </nav>
 </head>

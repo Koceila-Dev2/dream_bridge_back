@@ -1,5 +1,5 @@
 {% extends "dream_bridge_app/base.html" %}
-{% load widget_tweaks %}   {# <-- AJOUT #}
+{% load widget_tweaks %}
 {% block title %}Créer un compte - Dream Bridge{% endblock %}
 
 {% block content %}
@@ -32,10 +32,8 @@
     </form>
 
     <div class="text-center mt-3">
-      <a href="{% url 'login' %}" class="text-light small">Déjà inscrit ? Se connecter</a>
+      <a href="{% url 'accounts:login' %}" class="text-light small">Déjà inscrit ? Se connecter</a>
     </div>
   </div>
 </div>
 {% endblock %}
-
-

@@ -11,25 +11,28 @@
 
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
-        </li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
       </ul>
       <div class="d-flex align-items-center">
-        <span class="me-3 text-white">👤 {{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
       </div>
     </div>
   </div>
 </nav>
 
 <div class="container py-5 text-white">
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} mb-2">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">📚 Ma bibliothèque de rêves</h1>
     <button class="btn btn-outline-light" data-bs-toggle="collapse" data-bs-target="#filters">🔍 Filtres</button>
@@ -41,7 +44,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label text-white" for="date">Date du rêve</label>
-            <input type="date" name="date" id="date" class="form-control"
+            <input type="date" name="created_at" id="date" class="form-control"
                    value="{{ selected_date }}"
                    style="background-color: rgba(111,66,193,0.2); color: white; border: none;">
           </div>
@@ -68,11 +71,33 @@
     {% if images %}
       {% for img in images %}
         <div class="col-6 col-md-4 col-lg-3">
-          <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
+          <div class="card border-0 shadow h-100" style="background-color: rgba(255,255,255,0.05);">
             <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
-            <div class="card-body text-white">
-              <h6 class="card-title">{{ img.nom }}</h6>
-              <p class="card-text small">{{ img.date }} – {{ img.emotion }}</p>
+
+            <div class="card-body text-white d-flex flex-column">
+              <p class="card-text small mb-1">
+                {{ img.created_at|date:"d/m/Y" }} – {{ img.emotion|default:"" }}
+              </p>
+
+              {% if img.personal_phrase %}
+                <p class="card-text small flex-grow-1" style="opacity:.9; white-space:pre-line;">
+                  {{ img.personal_phrase|truncatechars:120 }}
+                </p>
+              {% else %}
+                <p class="card-text small flex-grow-1 text-white-50">
+                  Aucun message personnalisé encore généré.
+                </p>
+              {% endif %}
+
+              <div class="mt-2 d-grid gap-2">
+                <form method="post" action="{% url 'dream_bridge_app:dream-personalize' img.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-light btn-sm">✨ Générer / Régénérer</button>
+                </form>
+                <a class="btn btn-outline-light btn-sm" href="{% url 'dream_bridge_app:dream-status' img.id %}">
+                  👁️ Voir le rêve
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -85,5 +110,3 @@
   </div>
 </div>
 {% endblock %}
-
-

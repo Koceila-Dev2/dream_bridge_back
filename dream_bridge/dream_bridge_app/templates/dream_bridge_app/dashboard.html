@@ -25,8 +25,8 @@
         </li>
       </ul>
       <div class="d-flex align-items-center">
-        <span class="me-3 text-white">👤 {{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
       </div>
     </div>
   </div>
@@ -38,7 +38,6 @@
     <p class="lead text-white">Explore, raconte et revivez vos plus beaux songes</p>
   </div>
 
-  {# === Encadré Phrase du jour / Horoscope === #}
   {% if daily_message %}
   <div class="row w-100 justify-content-center mb-4">
     <div class="col-md-8">
