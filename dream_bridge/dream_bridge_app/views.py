@@ -22,15 +22,9 @@ from accounts.models import UserProfile
 
 def home(request):
     if request.user.is_authenticated:
-<<<<<<< HEAD
-        return redirect('dream_bridge_app:home_page')
- 
-    return reverse('login')
-=======
         return redirect('dream_bridge_app:accueil')
     return render(request, 'dream_bridge_app/home.html')
 
->>>>>>> Maxime
 
 @login_required
 def dream_create_view(request):
@@ -54,35 +48,15 @@ def dream_create_view(request):
 
 
 @login_required
-<<<<<<< HEAD
-def home_page(request):
-    """
-    Affiche la phrase/horoscope du jour et l’enregistre dans le
-    dernier rêve de l’utilisateur (1×/jour).
-    """
-=======
 def dashboard(request):
     """Affiche la phrase/horoscope du jour et l’enregistre à CHAQUE affichage."""
->>>>>>> Maxime
     daily_message = get_daily_message(request.user.id)
     try:
         update_daily_phrase_in_dream(request.user)  # plus de garde par session
     except Exception:
         pass
 
-<<<<<<< HEAD
-    today_key = timezone.localdate().isoformat()
-    if request.session.get("quote_saved_on") != today_key:
-        try:
-            update_daily_phrase_in_dream(request.user)  # écrit dans le dernier rêve s’il existe
-        except Exception:
-            pass
-        request.session["quote_saved_on"] = today_key
-
-    return render(request, 'dream_bridge_app/home_page.html', {
-=======
     return render(request, 'dream_bridge_app/accueil.html', {
->>>>>>> Maxime
         'daily_message': daily_message,
     })
 

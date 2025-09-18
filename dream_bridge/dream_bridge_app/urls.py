@@ -5,22 +5,11 @@ from . import views
 app_name = "dream_bridge_app"
 
 urlpatterns = [
-<<<<<<< HEAD
-    path('', views.home, name='home'),
-    path('dreams/<uuid:dream_id>/status/', dream_status_view, name='dream-status'),
-    path('home_page/', views.home_page, name='home_page'),
-    path('narrate/', dream_create_view, name='narrate'),
-    path('report/', views.report, name='report'),
-    path('galerie/', views.galerie_filtrée, name='galerie'),
-    path('dreams/<uuid:dream_id>/status/', views.dream_status_view, name='dream-status'),
-    path('api/dreams/<uuid:dream_id>/status/', views.check_dream_status_api, name='check-dream-status-api'),
-=======
     path("", views.home, name="home"),
     path("accueil/", views.dashboard, name="accueil"),
     path("narrate/", views.dream_create_view, name="narrate"),
-    path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("dashboard/", views.report, name="dashboard"),
     path("galerie/", views.galerie_filtrée, name="galerie"),
->>>>>>> Maxime
 
     # Détail d’un rêve
     path("dreams/<uuid:dream_id>/status/", views.dream_status_view, name="dream-status"),
