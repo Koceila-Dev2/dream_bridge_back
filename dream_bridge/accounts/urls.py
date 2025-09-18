@@ -10,19 +10,13 @@ urlpatterns = [
     path("me/", profile_view, name="profile"),
 
     # Inscription
-    path("signup/", SignUpView.as_view(), name="signup"),
+    path("signup/",   SignUpView.as_view(), name="signup"),
     path("register/", SignUpView.as_view(), name="register"),  # alias
 
-    # Connexion
+    # Connexion (UNE SEULE ROUTE)
     path(
         "login/",
         auth_views.LoginView.as_view(template_name="accounts/login.html"),
-        name="login",
-    ),
-
-    path(
-        "login/",
-        auth_views.LoginView.as_view(template_name="dream_bridge_app/login_custom.html"),
         name="login",
     ),
 

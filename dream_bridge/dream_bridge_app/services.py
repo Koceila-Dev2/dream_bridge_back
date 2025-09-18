@@ -355,81 +355,83 @@ def get_daily_message(user_id, day="TODAY") -> str:
         return get_quote_of_the_day()
 
 
-def update_daily_phrase_in_dream(user, dream_id: str | None = None):
-    """
-    Écrit la phrase/horoscope du jour dans un rêve (le plus récent par défaut).
-    """
-    message = get_daily_message(user.id)
-    today = timezone.localdate()
+# def update_daily_phrase_in_dream(user, dream_id: str | None = None):
+#     """
+#     Écrit la phrase/horoscope du jour dans un rêve (le plus récent par défaut).
+#     ► Toujours réécrit (plus de garde par date).
+#     """
+#     message = get_daily_message(user.id)
+#     today = timezone.localdate()
 
-    qs = Dream.objects.filter(user=user)
-    if dream_id:
-        qs = qs.filter(id=dream_id)
+#     qs = Dream.objects.filter(user=user)
+#     if dream_id:
+#         qs = qs.filter(id=dream_id)
 
-    dream = qs.order_by("-created_at").first()
-    if not dream:
-        return None
+#     dream = qs.order_by("-created_at").first()
+#     if not dream:
+#         return None
 
-    if dream.phrase and dream.phrase_date == today:
-        return dream
+#     dream.phrase = message or ""
+#     dream.phrase_date = today
+#     dream.save(update_fields=["phrase", "phrase_date", "updated_at"])
+#     return dream
 
-    dream.phrase = message or ""
-    dream.phrase_date = today
-    dream.save(update_fields=["phrase", "phrase_date", "updated_at"])
-    return dream
-
-
-def update_daily_phrase_for_all_users_latest_dream() -> int:
-    user_ids = (Dream.objects.values_list("user_id", flat=True).order_by("user_id").distinct())
-    updated = 0
-    UserModel = get_user_model()
-    for uid in user_ids:
-        try:
-            user = UserModel.objects.get(id=uid)
-            if update_daily_phrase_in_dream(user):
-                updated += 1
-        except Exception:
-            pass
-    return updated
+# def update_daily_phrase_for_all_users_latest_dream() -> int:
+#     user_ids = (Dream.objects.values_list("user_id", flat=True).order_by("user_id").distinct())
+#     updated = 0
+#     UserModel = get_user_model()
+#     for uid in user_ids:
+#         try:
+#             user = UserModel.objects.get(id=uid)
+#             if update_daily_phrase_in_dream(user):
+#                 updated += 1
+#         except Exception:
+#             pass
+#     return updated
 
 
 # ----------------------- Message personnalisé -----------------------
 
+# --- remplace la fonction existante ---
 def generate_personal_message_for_dream(
     dream_id: str, force: bool = True, model: str = "llama3-70b-8192"
 ) -> str:
     """
-    Génère et stocke Dream.personal_phrase (+ date) avec un message plus profond.
-    Utilise le fichier prompts/personal_daily_message.txt comme base.
+    Génère et ENREGISTRE TOUJOURS Dream.personal_phrase (+ date).
+    (Plus de condition qui empêcherait la sauvegarde.)
     """
     dream = Dream.objects.select_related("user", "user__profile").get(id=dream_id)
 
-    # Ne régénère pas si déjà fait aujourd'hui (sauf force=True)
-    if not force and dream.personal_phrase and dream.personal_phrase_date == timezone.localdate():
-        return dream.personal_phrase
-
     prompt = build_personal_message_prompt(dream, dream.user)
 
-    # Debugging : voir le prompt réellement envoyé
-    print("=== Prompt envoyé à l'IA ===")
-    print(prompt)
-    print("============================")
+    try:
+        if not getattr(settings, "GROQ_API_KEY", None):
+            msg = _fallback_personal_message(dream, dream.user)
+        else:
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            completion = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Tu es un coach onirique bienveillant. Rédige un message en français, "
+                            "sans emoji ni liste ni titre, en 2–3 phrases, ancré dans le rêve."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.8,
+            )
+            msg = (completion.choices[0].message.content or "").strip()
 
-    if not getattr(settings, "GROQ_API_KEY", None):
+    except Exception:
+        # ultime filet de sécurité
         msg = _fallback_personal_message(dream, dream.user)
-    else:
-        client = Groq(api_key=settings.GROQ_API_KEY)
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "Tu es un coach onirique bienveillant."},
-                {"role": "user", "content": prompt},  # ✅ ton fichier .txt pilote la génération
-            ],
-            temperature=0.8,
-        )
-        msg = completion.choices[0].message.content.strip()
 
-    dream.personal_phrase = msg
+    # ► Sauvegarde INCONDITIONNELLE
+    dream.personal_phrase = msg or ""
     dream.personal_phrase_date = timezone.localdate()
     dream.save(update_fields=["personal_phrase", "personal_phrase_date", "updated_at"])
-    return msg
+
+    return dream.personal_phrase

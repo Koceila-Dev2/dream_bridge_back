@@ -72,20 +72,36 @@
       {% for img in images %}
         <div class="col-6 col-md-4 col-lg-3">
           <div class="card border-0 shadow h-100" style="background-color: rgba(255,255,255,0.05);">
-            <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
+
+            {# --- Image ou placeholder si absente --- #}
+            {% if img.generated_image %}
+              <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
+            {% else %}
+              <div class="card-img-top d-flex align-items-center justify-content-center"
+                   style="height: 160px; background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.12);">
+                <span class="small text-white-50">
+                  Aucune image — statut : {{ img.get_status_display }}
+                </span>
+              </div>
+            {% endif %}
 
             <div class="card-body text-white d-flex flex-column">
               <p class="card-text small mb-1">
                 {{ img.created_at|date:"d/m/Y" }} – {{ img.emotion|default:"" }}
               </p>
 
+              {# --- Priorité d’affichage du texte --- #}
               {% if img.personal_phrase %}
                 <p class="card-text small flex-grow-1" style="opacity:.9; white-space:pre-line;">
                   {{ img.personal_phrase|truncatechars:120 }}
                 </p>
+              {% elif img.phrase %}
+                <p class="card-text small flex-grow-1 text-white-50" style="white-space:pre-line;">
+                  {{ img.phrase|truncatechars:120 }}
+                </p>
               {% else %}
                 <p class="card-text small flex-grow-1 text-white-50">
-                  Aucun message personnalisé encore généré.
+                  Message en cours de génération…
                 </p>
               {% endif %}
 
@@ -104,7 +120,7 @@
       {% endfor %}
     {% else %}
       <div class="text-center mt-5">
-        <p class="text-light">Aucune image ne correspond aux filtres.</p>
+        <p class="text-light">Aucun rêve ne correspond aux filtres.</p>
       </div>
     {% endif %}
   </div>

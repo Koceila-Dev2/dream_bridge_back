@@ -1,6 +1,7 @@
 # accounts/views.py
-from django.contrib.auth import logout, get_user_model
+from django.contrib.auth import logout, get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -9,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CustomUserCreationForm
 from accounts.models import UserProfile
-from dream_bridge_app.forms import UserForm, ProfileForm  # on réutilise ces formulaires
+from dream_bridge_app.forms import UserForm, ProfileForm  # réutilisés
 
 User = get_user_model()
 
@@ -31,40 +32,58 @@ def logout_to_home(request):
 @login_required
 def profile_view(request):
     """
-    Page profil : l’utilisateur peut modifier
-    - prénom / nom / email
-    - croit à l’astrologie (case à cocher)
-    La date de naissance et le signe NE sont PAS modifiables ici.
+    Page profil simplifiée :
+    - Modifiables : email, believes_in_astrology
+    - Action séparée : changement de mot de passe
+    - Plus d’édition du prénom/nom, plus de bloc de droite.
     """
     user = request.user
     profile, _ = UserProfile.objects.get_or_create(user=user)
 
+    # Forms par défaut (GET)
+    user_form = UserForm(instance=user)
+    profile_form = ProfileForm(instance=profile)
+    password_form = PasswordChangeForm(user=user)
+
     if request.method == "POST":
-        uform = UserForm(request.POST, instance=user)
-        pform = ProfileForm(request.POST, instance=profile)
+        # 1) Soumission du bloc "Mot de passe"
+        if "change_password" in request.POST:
+            password_form = PasswordChangeForm(user=user, data=request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                # Rester connecté après changement de mot de passe
+                update_session_auth_hash(request, user)
+                messages.success(request, "Mot de passe mis à jour.")
+                return redirect("accounts:profile")
+            else:
+                messages.error(request, "Veuillez corriger les erreurs du mot de passe.")
+        else:
+            # 2) Soumission du bloc "Informations du compte"
+            # On veut empêcher toute modif de first_name/last_name :
+            # on injecte silencieusement les valeurs actuelles pour la validation du UserForm
+            data = request.POST.copy()
+            data.setdefault("first_name", user.first_name or "")
+            data.setdefault("last_name", user.last_name or "")
 
-        if uform.is_valid() and pform.is_valid():
-            uform.save()
-            pform.save()
-            messages.success(request, "Profil mis à jour.")
-            return redirect("accounts:profile")
-        messages.error(request, "Veuillez corriger les erreurs du formulaire.")
-    else:
-        uform = UserForm(instance=user)
-        pform = ProfileForm(instance=profile)
+            user_form = UserForm(data, instance=user)
+            profile_form = ProfileForm(request.POST, instance=profile)
 
-    # champs en lecture seule
-    readonly = {
-        "birth_date": profile.birth_date,
-        "zodiac_sign": (profile.zodiac_sign or "").strip(),
-    }
+            if user_form.is_valid() and profile_form.is_valid():
+                # On ne sauvegarde effectivement que l'email côté utilisateur
+                # (UserForm gère l'email; first/last_name restent identiques grâce au setdefault ci-dessus)
+                user_form.save()
+                profile_form.save()
+                messages.success(request, "Profil mis à jour.")
+                return redirect("accounts:profile")
+            else:
+                messages.error(request, "Veuillez corriger les erreurs du formulaire.")
 
     return render(
         request,
-        "accounts/profile.html",  # chemin template corrigé
+        "accounts/profile.html",
         {
-            "user_form": uform,
-            "profile_form": pform,
-            "readonly": readonly,  # clé harmonisée
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "password_form": password_form,
         },
     )

@@ -53,16 +53,12 @@ def dream_create_view(request):
 
 @login_required
 def dashboard(request):
-    """Affiche la phrase/horoscope du jour et l’enregistre dans le dernier rêve (1×/jour)."""
+    """Affiche la phrase/horoscope du jour et l’enregistre à CHAQUE affichage."""
     daily_message = get_daily_message(request.user.id)
-
-    today_key = timezone.localdate().isoformat()
-    if request.session.get("quote_saved_on") != today_key:
-        try:
-            update_daily_phrase_in_dream(request.user)
-        except Exception:
-            pass
-        request.session["quote_saved_on"] = today_key
+    try:
+        update_daily_phrase_in_dream(request.user)  # plus de garde par session
+    except Exception:
+        pass
 
     return render(request, 'dream_bridge_app/dashboard.html', {
         'daily_message': daily_message,
@@ -71,17 +67,19 @@ def dashboard(request):
 
 @login_required
 def galerie_filtrée(request):
-    """Bibliothèque : uniquement les rêves de l’utilisateur connecté + filtres."""
+    """Bibliothèque : TOUS les rêves de l’utilisateur (même sans image) + filtres."""
     emotion_filtrée = request.GET.get('emotion')
     date_filtrée = request.GET.get('created_at')
 
-    images = (Dream.objects
-              .filter(user=request.user, status='COMPLETED', generated_image__isnull=False)
-              .order_by('-created_at'))
+    images = (
+    Dream.objects
+    .filter(user=request.user)               # plus de filtre sur generated_image
+    .exclude(status='FAILED')                # optionnel : on cache les échecs si tu veux
+    .order_by('-created_at')
+)
 
     if emotion_filtrée and emotion_filtrée != "all":
         images = images.filter(emotion=emotion_filtrée)
-
     if date_filtrée:
         images = images.filter(created_at__date=date_filtrée)
 
@@ -97,7 +95,6 @@ def galerie_filtrée(request):
         'selected_emotion': emotion_filtrée,
         'selected_date': date_filtrée,
     })
-
 
 @login_required
 def library(request):
