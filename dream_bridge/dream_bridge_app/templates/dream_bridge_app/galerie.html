@@ -11,7 +11,7 @@
 
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a></li>
+  <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
       </ul>
@@ -106,10 +106,7 @@
               {% endif %}
 
               <div class="mt-2 d-grid gap-2">
-                <form method="post" action="{% url 'dream_bridge_app:dream-personalize' img.id %}">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-light btn-sm">✨ Générer / Régénérer</button>
-                </form>
+                <!-- Formulaire de génération/régénération supprimé -->
                 <a class="btn btn-outline-light btn-sm" href="{% url 'dream_bridge_app:dream-status' img.id %}">
                   👁️ Voir le rêve
                 </a>

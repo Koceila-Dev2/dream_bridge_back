@@ -1,74 +1,123 @@
-{% extends "dream_bridge_app/base.html" %}
-{% block title %}Tableau de bord - Dream Bridge{% endblock %}
 
-{% block content %}
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
-     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:report' %}">📊 Dashboard</a>
-        </li>
-      </ul>
-      <div class="d-flex align-items-center">
-        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
-        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
-      </div>
-    </div>
-  </div>
-</nav>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard des rêves</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        .btn {
+            padding: 8px 12px;
+            margin-right: 5px;
+            text-decoration: none;
+            background-color: #f0f0f0;
+            color: #333;
+            border-radius: 4px;
+        }
+        .btn.active {
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+        }
+        .stats {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
 
-<div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
-  <div class="text-center mb-5">
-    <h1 class="display-5 text-white">Bienvenue dans ton espace de rêves</h1>
-    <p class="lead text-white">Explore, raconte et revivez vos plus beaux songes</p>
-  </div>
+<h1>Dashboard des rêves</h1>
 
-  {% if daily_message %}
-  <div class="row w-100 justify-content-center mb-4">
-    <div class="col-md-8">
-      <div class="card bg-transparent text-white border-0 shadow-lg p-4" style="backdrop-filter: blur(12px);">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-          <span class="fs-5">✨ Phrase du jour</span>
-          <small class="text-white-50">{% now "d/m/Y" %}</small>
-        </div>
-        <div class="mt-2">{{ daily_message|linebreaksbr }}</div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="row w-100 justify-content-center">
-    <div class="col-md-4 mb-4">
-      <div class="card bg-transparent text-white border-0 shadow-lg text-center p-4" style="backdrop-filter: blur(12px);">
-        <div class="fs-2 mb-2">🎙️</div>
-        <h4>Raconter un rêve</h4>
-        <p>Exprimez-vous à voix haute. L'IA se charge de tout transformer.</p>
-        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Commencer</a>
-      </div>
-    </div>
-    <div class="col-md-4 mb-4">
-      <div class="card bg-transparent text-white border-0 shadow-lg text-center p-4" style="backdrop-filter: blur(12px);">
-        <div class="fs-2 mb-2">📚</div>
-        <h4>Ma bibliothèque</h4>
-        <p>Accédez à tous vos rêves enregistrés et illustrés.</p>
-        <a href="{% url 'dream_bridge_app:galerie' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Voir</a>
-      </div>
-    </div>
-  </div>
+<div>
+    <a href="?period=3d" class="btn {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
+    <a href="?period=7d" class="btn {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
+    <a href="?period=1m" class="btn {% if period == '1m' %}active{% endif %}">Dernier mois</a>
+    <a href="?period=all" class="btn {% if period == 'all' %}active{% endif %}">Depuis le début</a>
 </div>
-{% endblock %}
+
+<div class="stats">
+    <p><strong>Total de rêves :</strong> {{ total_dreams }}</p>
+    <p><strong>Fréquence des jours avec rêve :</strong> {{ dream_frequency }}%</p>
+</div>
+
+<h2>Répartition des émotions</h2>
+<canvas id="emotionChart"></canvas>
+
+<h2>Tendance des émotions</h2>
+<canvas id="trendChart"></canvas>
+
+<script>
+    // Données transmises depuis la vue
+    const emotionData = JSON.parse('{{ emotion_distribution|escapejs }}');
+    const trendData = JSON.parse('{{ emotion_trend|escapejs }}');
+
+    // === Camembert émotions ===
+    const ctxEmotion = document.getElementById('emotionChart').getContext('2d');
+    const emotionChart = new Chart(ctxEmotion, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(emotionData),
+            datasets: [{
+                data: Object.values(emotionData),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#8AFF33', '#FF33EC', '#33FFF9'
+                ],
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    // === Tendance émotions (line chart) ===
+    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+
+    // Préparer les labels (dates)
+    const dates = trendData.map(item => item.date);
+
+    // Obtenir toutes les émotions présentes
+    const allEmotions = new Set();
+    trendData.forEach(item => {
+        Object.keys(item).forEach(key => {
+            if(key !== 'date') allEmotions.add(key);
+        });
+    });
+
+    // Construire datasets pour Chart.js
+    const datasets = Array.from(allEmotions).map((emo, index) => {
+        return {
+            label: emo,
+            data: trendData.map(item => item[emo] || 0),
+            borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
+            fill: false,
+        };
+    });
+
+    const trendChart = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

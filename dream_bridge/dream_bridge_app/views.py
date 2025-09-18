@@ -14,11 +14,7 @@ from .models import Dream
 from .forms import DreamForm, UserForm, ProfileForm
 from .tasks import process_dream_audio_task
 from .metrics_dashboard import *
-from .services import (
-    get_daily_message,
-    update_daily_phrase_in_dream,
-    generate_personal_message_for_dream,
-)
+from .services import *
 
 # ✅ importe ton modèle de profil
 from accounts.models import UserProfile
@@ -26,7 +22,7 @@ from accounts.models import UserProfile
 
 def home(request):
     if request.user.is_authenticated:
-        return redirect('dream_bridge_app:dashboard')
+        return redirect('dream_bridge_app:accueil')
     return render(request, 'dream_bridge_app/home.html')
 
 
@@ -60,7 +56,7 @@ def dashboard(request):
     except Exception:
         pass
 
-    return render(request, 'dream_bridge_app/dashboard.html', {
+    return render(request, 'dream_bridge_app/accueil.html', {
         'daily_message': daily_message,
     })
 
@@ -164,7 +160,7 @@ def dashboard_view(request):
         "emotion_trend": json.dumps(trend),
         "period": period,
     }
-    return render(request, "dream_bridge_app/report.html", context)
+    return render(request, "dream_bridge_app/dashboard.html", context)
 
 
 @login_required

@@ -2,7 +2,6 @@ import os
 import pickle
 import json
 import requests
-from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -104,6 +103,11 @@ def _fallback_personal_message(dream: Dream, user) -> str:
     sign = (getattr(profile, "zodiac_sign", "") or "").strip().lower()
     if not sign and believes and getattr(profile, "birth_date", None):
         sign = get_astrological_sign(profile.birth_date).lower()
+    # Force string conversion in case of dict or other type
+    if isinstance(sign, dict):
+        sign = str(sign.get("sign", ""))
+    elif not isinstance(sign, str):
+        sign = str(sign)
 
     try:
         emotion = dream.get_emotion_display()
@@ -120,7 +124,10 @@ def _fallback_personal_message(dream: Dream, user) -> str:
     else:
         emo_txt = "Ce rêve met en lumière quelque chose d’encore diffus mais important. "
 
-    astro_txt = f" En {sign}, appuie-toi sur tes qualités naturelles pour enraciner ce pas." if believes and sign else ""
+    astro_txt = ""
+    if believes and sign:
+        astro_txt = f" En {sign}, appuie-toi sur tes qualités naturelles pour enraciner ce pas."
+
     action = (
         " Choisis une action minuscule mais tangible aujourd’hui : écrire trois lignes, envoyer un message, "
         "ou poser une limite douce qui respecte ce que tu as compris."
@@ -187,7 +194,6 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
     """Orchestre le pipeline (transcription → émotion → prompt → image)."""
     try:
         dream = Dream.objects.get(id=dream_id)
-        dream.status = Dream.DreamStatus.PROCESSING
         dream.save(update_fields=["status"])
 
         USE_SIMULATION = True  # ← garde True pour ton environnement actuel
@@ -359,39 +365,6 @@ def get_daily_message(user_id, day="TODAY") -> str:
         return get_quote_of_the_day()
 
 
-def update_daily_phrase_in_dream(user, dream_id: str | None = None):
-    """
-    Écrit la phrase/horoscope du jour dans un rêve (le plus récent par défaut).
-    ► Toujours réécrit (plus de garde par date).
-    """
-    message = get_daily_message(user.id)
-    today = timezone.localdate()
-
-    qs = Dream.objects.filter(user=user)
-    if dream_id:
-        qs = qs.filter(id=dream_id)
-
-    dream = qs.order_by("-created_at").first()
-    if not dream:
-        return None
-
-    dream.phrase = message or ""
-    dream.phrase_date = today
-    dream.save(update_fields=["phrase", "phrase_date", "updated_at"])
-    return dream
-
-def update_daily_phrase_for_all_users_latest_dream() -> int:
-    user_ids = (Dream.objects.values_list("user_id", flat=True).order_by("user_id").distinct())
-    updated = 0
-    UserModel = get_user_model()
-    for uid in user_ids:
-        try:
-            user = UserModel.objects.get(id=uid)
-            if update_daily_phrase_in_dream(user):
-                updated += 1
-        except Exception:
-            pass
-    return updated
 
 
 # ----------------------- Message personnalisé -----------------------
@@ -402,12 +375,12 @@ def generate_personal_message_for_dream(
 ) -> str:
     """
     Génère et ENREGISTRE TOUJOURS Dream.personal_phrase (+ date).
-    (Plus de condition qui empêcherait la sauvegarde.)
+    Enregistre dans 'phrase' la phrase du jour (astro/citation),
+    et dans 'personal_phrase' le message personnalisé du rêve enrichi avec la phrase du jour.
     """
     dream = Dream.objects.select_related("user", "user__profile").get(id=dream_id)
-
     prompt = build_personal_message_prompt(dream, dream.user)
-
+    phrase_du_jour = get_daily_message(dream.user_id)
     try:
         if not getattr(settings, "GROQ_API_KEY", None):
             msg = _fallback_personal_message(dream, dream.user)
@@ -428,21 +401,16 @@ def generate_personal_message_for_dream(
                 temperature=0.8,
             )
             msg = (completion.choices[0].message.content or "").strip()
-
     except Exception:
-        # ultime filet de sécurité
         msg = _fallback_personal_message(dream, dream.user)
 
-
-
-    dream.phrase = get_daily_message(dream.user_id)
-
-    
-
-    dream.personal_phrase = msg or ""
-    dream.personal_phrase_date = timezone.localdate()
+    # Enregistre la phrase du jour dans la colonne 'phrase'
+    dream.phrase = phrase_du_jour or ""
     dream.phrase_date = timezone.localdate()
 
-    dream.save(update_fields=["phrase", "personal_phrase", "personal_phrase_date", "updated_at", "phrase_date"])
+    # Enregistre uniquement le message personnalisé dans la colonne 'personal_phrase'
+    dream.personal_phrase = msg or ""
+    dream.personal_phrase_date = timezone.localdate()
 
+    dream.save(update_fields=["phrase", "personal_phrase", "personal_phrase_date", "updated_at", "phrase_date"])
     return dream.personal_phrase

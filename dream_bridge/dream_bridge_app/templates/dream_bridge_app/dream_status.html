@@ -12,7 +12,7 @@
     </button>
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">🏠 Accueil</a></li>
+  <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
       </ul>
@@ -72,9 +72,7 @@
           </div>
 
           <div class="d-flex gap-2 mt-4">
-            <form method="post" action="{% url 'dream_bridge_app:dream-personalize' dream.id %}">
               {% csrf_token %}
-              <button class="btn btn-light">✨ Régénérer le message</button>
             </form>
             <a href="{% url 'dream_bridge_app:galerie' %}" class="btn btn-outline-light">Retour à la bibliothèque</a>
             <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>

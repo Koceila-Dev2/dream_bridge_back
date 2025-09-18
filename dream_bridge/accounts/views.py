@@ -17,8 +17,8 @@ User = get_user_model()
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
-    template_name = "dream_bridge_app/register.html"
-    success_url = reverse_lazy("login")
+    template_name = "accounts/signup.html"
+    success_url = reverse_lazy("accounts:login")
 
 
 @require_http_methods(["GET", "POST"])
