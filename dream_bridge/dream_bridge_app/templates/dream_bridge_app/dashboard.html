@@ -44,6 +44,18 @@
     <a href="?period=all" class="btn {% if period == 'all' %}active{% endif %}">Depuis le début</a>
 </div>
 
+<form method="get" style="margin-top:20px; margin-bottom:20px;">
+    <input type="hidden" name="period" value="{{ period }}">
+    <label for="emotion"><strong>Filtrer par émotion :</strong></label>
+    <select name="emotion" id="emotion" onchange="this.form.submit()" style="margin-left:10px;">
+        <option value="all" {% if selected_emotion == 'all' %}selected{% endif %}>Toutes</option>
+        {% for emo in emotions %}
+            <option value="{{ emo }}" {% if emo == selected_emotion %}selected{% endif %}>{{ emo }}</option>
+        {% endfor %}
+    </select>
+</form>
+</div>
+
 <div class="stats">
     <p><strong>Total de rêves :</strong> {{ total_dreams }}</p>
     <p><strong>Fréquence des jours avec rêve :</strong> {{ dream_frequency }}%</p>
