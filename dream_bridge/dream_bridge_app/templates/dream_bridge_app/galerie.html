@@ -9,7 +9,7 @@
   </div>
 
   <div class="collapse mb-4" id="filters">
-    <div class="card bg-transparent border-0 shadow p-4" style="backdrop-filter: blur(10px);">
+    <div class="card card-dream shadow p-4">
       <form method="get">
         <div class="row g-3">
           <div class="col-md-4">
@@ -41,8 +41,8 @@
     {% if images %}
       {% for img in images %}
         <div class="col-6 col-md-4 col-lg-3">
-          <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
-            <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
+          <div class="card card-dream shadow-lg h-100">
+            <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top rounded-top">
             <div class="card-body text-white">
               <h6 class="card-title">{{ img.nom }}</h6>
               <p class="card-text small">{{ img.date }} – {{ img.emotion }}</p>
@@ -58,5 +58,3 @@
   </div>
 </div>
 {% endblock %}
-
-
