@@ -11,6 +11,7 @@
 
     <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+<<<<<<< HEAD
         <li class="nav-item">
           <a class="nav-link text-white" href="{% url 'dream_bridge_app:home_page' %}">🏠 Accueil</a>
         </li>
@@ -20,16 +21,30 @@
         <li class="nav-item">
           <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
         </li>
+=======
+  <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
+>>>>>>> Maxime
       </ul>
       <div class="d-flex align-items-center">
-        <span class="me-3 text-white">👤 {{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
       </div>
     </div>
   </div>
 </nav>
 
 <div class="container py-5 text-white">
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} mb-2">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">📚 Ma bibliothèque de rêves</h1>
     <button class="btn btn-outline-light" data-bs-toggle="collapse" data-bs-target="#filters">🔍 Filtres</button>
@@ -41,7 +56,7 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label text-white" for="date">Date du rêve</label>
-            <input type="date" name="date" id="date" class="form-control"
+            <input type="date" name="created_at" id="date" class="form-control"
                    value="{{ selected_date }}"
                    style="background-color: rgba(111,66,193,0.2); color: white; border: none;">
           </div>
@@ -68,22 +83,55 @@
     {% if images %}
       {% for img in images %}
         <div class="col-6 col-md-4 col-lg-3">
-          <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
-            <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
-            <div class="card-body text-white">
-              <h6 class="card-title">{{ img.nom }}</h6>
-              <p class="card-text small">{{ img.date }} – {{ img.emotion }}</p>
+          <div class="card border-0 shadow h-100" style="background-color: rgba(255,255,255,0.05);">
+
+            {# --- Image ou placeholder si absente --- #}
+            {% if img.generated_image %}
+              <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
+            {% else %}
+              <div class="card-img-top d-flex align-items-center justify-content-center"
+                   style="height: 160px; background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.12);">
+                <span class="small text-white-50">
+                  Aucune image — statut : {{ img.get_status_display }}
+                </span>
+              </div>
+            {% endif %}
+
+            <div class="card-body text-white d-flex flex-column">
+              <p class="card-text small mb-1">
+                {{ img.created_at|date:"d/m/Y" }} – {{ img.emotion|default:"" }}
+              </p>
+
+              {# --- Priorité d’affichage du texte --- #}
+              {% if img.personal_phrase %}
+                <p class="card-text small flex-grow-1" style="opacity:.9; white-space:pre-line;">
+                  {{ img.personal_phrase|truncatechars:120 }}
+                </p>
+              {% elif img.phrase %}
+                <p class="card-text small flex-grow-1 text-white-50" style="white-space:pre-line;">
+                  {{ img.phrase|truncatechars:120 }}
+                </p>
+              {% else %}
+                <p class="card-text small flex-grow-1 text-white-50">
+                  Message en cours de génération…
+                </p>
+              {% endif %}
+
+              <div class="mt-2 d-grid gap-2">
+                <!-- Formulaire de génération/régénération supprimé -->
+                <a class="btn btn-outline-light btn-sm" href="{% url 'dream_bridge_app:dream-status' img.id %}">
+                  👁️ Voir le rêve
+                </a>
+              </div>
             </div>
           </div>
         </div>
       {% endfor %}
     {% else %}
       <div class="text-center mt-5">
-        <p class="text-light">Aucune image ne correspond aux filtres.</p>
+        <p class="text-light">Aucun rêve ne correspond aux filtres.</p>
       </div>
     {% endif %}
   </div>
 </div>
 {% endblock %}
-
-

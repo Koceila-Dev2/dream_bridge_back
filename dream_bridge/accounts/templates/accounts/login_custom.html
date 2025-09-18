@@ -9,7 +9,7 @@
     <h2 class="text-center mb-3 text-white">🌙 Dream Bridge</h2>
     <p class="text-center text-white mb-4">Connecte-toi pour accéder à ton univers de rêves</p>
 
-    <form method="post" action="{% url 'login' %}" novalidate>
+    <form method="post" action="{% url 'accounts:login' %}" novalidate>
       {% csrf_token %}
 
       {% if form.non_field_errors %}

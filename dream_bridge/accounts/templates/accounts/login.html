@@ -1,22 +1,42 @@
 {% extends "accounts/base.html" %}
+{% load widget_tweaks %}
 
 {% block title %}Connexion - Dream Bridge{% endblock %}
 
 {% block content %}
-<main class="main-content">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8">
-                <div class="process-card">
-                    <h3 class="process-title">Connexion</h3>
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-light mt-3">Se connecter</button>
-                    </form>
-                </div>
-            </div>
+<main class="main-content d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+  <div class="card shadow-lg p-4 border-0" style="max-width: 400px; width: 100%;">
+    <h2 class="text-center mb-3">🌙 Dream Bridge</h2>
+    <p class="text-center mb-4">Connecte-toi pour accéder à ton univers de rêves</p>
+
+    <form method="post" action="{% url 'accounts:login' %}" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="text-danger small mb-2">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field|add_class:"form-control" }}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+          {% endif %}
         </div>
+      {% endfor %}
+
+      <input type="hidden" name="next" value="{% url 'dream_bridge_app:accueil' %}">
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">Connexion</button>
+      </div>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{% url 'accounts:signup' %}" class="small">Créer un compte</a><br>
+      <a href="{% url 'accounts:password_reset' %}" class="small">Mot de passe oublié ?</a>
     </div>
+  </div>
 </main>
 {% endblock %}

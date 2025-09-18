@@ -1,5 +1,4 @@
 import os
-from dream_bridge.celery import app
 from celery import shared_task
 from .services import orchestrate_dream_generation
 

@@ -6,11 +6,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Inclure les URLs de notre application dream_bridge_app
     path('', include('dream_bridge_app.urls')),
-    path('accounts/', include('accounts.urls')),
+    path('accounts/', include('accounts.urls', namespace='accounts')),
 ] 
 
 if settings.DEBUG:

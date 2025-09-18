@@ -1,113 +1,69 @@
 {% extends "dream_bridge_app/base.html" %}
-
-
-{% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
-
-<!-- 
 {% load static %}
-{% block styles %}
-<link rel="stylesheet" href="{% static 'dream_bridge_app/waiting_screen.css' %}">
-{% endblock %} -->
-
+{% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
 
 {% block content %}
 <nav class="navbar fixed-top navbar-expand-lg navbar-dark"
      style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'dream_bridge_app:home_page' %}">🏠 Accueil</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
-            </li>
-          </ul>
-          <div class="d-flex align-items-center">
-            <span class="me-3 text-white">👤 {{ user.username }}</span>
-            <form action="{% url 'logout' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
-            </form>
-          </div>
-        </div>
     </div>
+  </div>
 </nav>
 
-<div class="parallax-bg"></div>
+<main class="main-content depth-layer">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
 
-<main class="main-content depth-layer"> 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-10">
+        <div class="glass-card">
+          <div class="process-icon">✨</div>
+          <h3 class="process-title">Votre Rêve Visualisé</h3>
+          <p class="process-description">Interprétation artistique et message adapté à votre rêve.</p>
 
-                <div id="loading-screen" class="glass-card" 
-                     data-check-url="{% url 'dream_bridge_app:check-dream-status-api' dream_id=dream.id %}"
-                     data-status="{{ dream.status }}">
+          {% if dream.generated_image %}
+          <div class="mt-3 shadow rounded p-2" style="background: rgba(0,0,0,0.2);">
+            <img src="{{ dream.generated_image.url }}" class="img-fluid rounded" alt="Image générée du rêve">
+          </div>
+          {% endif %}
 
-                    <div class="mystic-loader">
-                      <div class="moon"></div>
-                      <div class="star"></div>
-                      <div class="star twinkle"></div>
-                      <div class="star"></div>
-                    </div>
-
-                    <h3 class="waiting-title">Les astres interprètent votre rêve…</h3>
-                    <p id="loading-message">
-                      Nos algorithmes percent le mystère de votre subconscient…
-                    </p>
-
-                    <!-- Message du jour stylisé -->
-                    <div class="astro-message-container">
-                      <div class="astro-message-icon">🌟</div>
-                      <h3 class="astro-heading">Message du Jour</h3>
-                      <p class="astro-message" id="astro-message-text">{{ daily_message }}</p>
-                    </div>
-                </div>
-
-                <div id="dream-content" class="glass-card" style="display:none;">
-                    <div class="process-icon">✨</div>
-                    <h3 class="process-title">Votre Rêve Visualisé</h3>
-                    <p class="process-description">Voici l'interprétation artistique de votre récit.</p>
-
-                    {% if dream.generated_image %}
-                    <div class="mt-4 shadow rounded p-2" style="background: rgba(0,0,0,0.2);">
-                        <img src="{{ dream.generated_image.url }}" class="img-fluid rounded" alt="Image générée du rêve">
-                    </div>
-                    {% endif %}
-
-                    <div class="text-start mt-4">
-                        <p><strong>Émotion dominante :</strong><br><em class="opacity-75">{{ dream.get_emotion_display }}</em></p>
-                        <p><strong>Transcription :</strong><br><em class="opacity-75">"{{ dream.transcription }}"</em></p>
-                        <p><strong>Prompt utilisé :</strong><br><em class="opacity-75">"{{ dream.image_prompt }}"</em></p>
-                    </div>
-
-                    <div class="astro-message-container mt-5">
-                      <div class="astro-message-icon">🌟</div>
-                      <h3 class="astro-heading">Message du Jour</h3>
-                      <p class="astro-message">{{ daily_message }}</p>
-                    </div>
-
-                    <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
-                    <div class="d-flex justify-content-center gap-2">
-                        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
-                    </div>
-                    
-                </div>
-
+          <!-- Message personnalisé -->
+          <div class="mt-4 p-4 rounded-4" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 0 0 40px rgba(0,0,0,.08);">
+            <div class="d-flex align-items-center mb-2">
+              <div class="me-2">🔮</div>
+              <h5 class="m-0">Message personnalisé</h5>
             </div>
-        </div>
-    </div>
-</main>
-{% endblock %}
+            <p class="mb-0" style="opacity:.95; white-space:pre-line;">
+              {{ dream.personal_phrase|default:daily_message }}
+            </p>
+          </div>
 
-{% block scripts %}
-<script src="{% static 'dream_bridge_app/waiting_screen.js' %}"></script>
+          <!-- Infos -->
+          <div class="row g-3 mt-4">
+            <div class="col-md-6">
+              <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);">
+                <div class="text-uppercase small opacity-75">Émotion dominante</div>
+                <div class="fw-semibold mt-1">{{ emotion_label }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);">
+                <div class="text-uppercase small opacity-75">Date</div>
+                <div class="fw-semibold mt-1">
+                  {{ created_at_local|date:"d/m/Y \\à H\\hi" }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+              {% csrf_token %}
+            </form>
+            <a href="{% url 'dream_bridge_app:galerie' %}" class="btn btn-outline-light">Retour à la bibliothèque</a>
+            <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">Raconter un autre rêve</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
 {% endblock %}

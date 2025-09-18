@@ -1,0 +1,123 @@
+{% extends "dream_bridge_app/base.html" %}
+{% load static %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
+     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+  <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5 text-white">
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} mb-2">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h1 class="h3 mb-4">👤 Mon profil</h1>
+
+  <div class="row g-4">
+
+    <!-- Infos compte : email + préférence astro -->
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow" style="background-color: rgba(255,255,255,0.05);">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Informations du compte</h5>
+
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="save_profile" value="1">
+
+            <!-- On ne montre plus prénom/nom -->
+            <div class="mb-3">
+              <label class="form-label">Adresse e-mail</label>
+              {{ user_form.email }}
+            </div>
+
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+
+            <h6 class="mb-2">Préférences</h6>
+            <div class="form-check mb-3">
+              {{ profile_form.believes_in_astrology }}
+              <label class="form-check-label ms-2" for="{{ profile_form.believes_in_astrology.id_for_label }}">
+                Je crois à l’astrologie
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-light">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modification du mot de passe -->
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow mt-3" style="background-color: rgba(255,255,255,0.05);">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Modifier mon mot de passe</h5>
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="change_password" value="1">
+
+            <div class="mb-3">
+              <label class="form-label">Mot de passe actuel</label>
+              {{ password_form.old_password }}
+              {% if password_form.old_password.errors %}
+                <div class="text-danger small">{{ password_form.old_password.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Nouveau mot de passe</label>
+              {{ password_form.new_password1 }}
+              {% if password_form.new_password1.errors %}
+                <div class="text-danger small">{{ password_form.new_password1.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Confirmer le nouveau mot de passe</label>
+              {{ password_form.new_password2 }}
+              {% if password_form.new_password2.errors %}
+                <div class="text-danger small">{{ password_form.new_password2.errors }}</div>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-outline-light">Mettre à jour le mot de passe</button>
+          </form>
+
+          {% if password_form.non_field_errors %}
+            <div class="text-danger small mt-2">{{ password_form.non_field_errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

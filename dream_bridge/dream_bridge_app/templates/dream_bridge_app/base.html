@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dream Bridge{% endblock %}</title>
-     {% load static %} 
+    {% load static %}
     {% block styles %}
     <link rel="stylesheet" href="{% static 'dream_bridge_app/waiting_screen.css' %}">
     {% endblock %}
-
 
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -42,7 +41,7 @@
     </style>
 </head>
 <body>
-    <!-- ✅ NAVBAR dans le body -->
+    <!-- ✅ NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dream_bridge_app:home' %}">Dream Bridge</a>
@@ -53,20 +52,19 @@
 
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- Liens de navigation si besoin -->
+                    <!-- liens éventuels -->
                 </ul>
 
                 <div class="d-flex align-items-center">
                     {% if user.is_authenticated %}
-                        <span class="navbar-text me-3">👤 {{ user.username }}</span>
-                        <!-- ✅ le POST contient bien le token CSRF -->
-                        <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-light">Déconnexion</button>
                         </form>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
-                        <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-light me-2">Connexion</a>
+                        <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light">Inscription</a>
                     {% endif %}
                 </div>
             </div>
