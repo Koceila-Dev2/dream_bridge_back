@@ -51,10 +51,6 @@ def dream_create_view(request):
 def dashboard(request):
     """Affiche la phrase/horoscope du jour et l’enregistre à CHAQUE affichage."""
     daily_message = get_daily_message(request.user.id)
-    try:
-        update_daily_phrase_in_dream(request.user)  # plus de garde par session
-    except Exception:
-        pass
 
     return render(request, 'dream_bridge_app/accueil.html', {
         'daily_message': daily_message,
@@ -62,22 +58,16 @@ def dashboard(request):
 
 
 @login_required
-def galerie_filtrée(request):
-    """Bibliothèque : TOUS les rêves de l’utilisateur (même sans image) + filtres."""
-    emotion_filtrée = request.GET.get('emotion')
-    date_filtrée = request.GET.get('created_at')
+def galerie_filtree(request):
+    emotion_filtreedate_filtree = request.GET.get('emotion')
+    date_filtree = request.GET.get('created_at')
+    images = Dream.objects.filter(status='COMPLETED', generated_image__isnull=False, phrase__isnull=False).order_by('-created_at')
 
-    images = (
-    Dream.objects
-    .filter(user=request.user)               # plus de filtre sur generated_image
-    .exclude(status='FAILED')                # optionnel : on cache les échecs si tu veux
-    .order_by('-created_at')
-)
+    if emotion_filtreedate_filtree and emotion_filtreedate_filtree != "all":
+        images = images.filter(emotion=emotion_filtreedate_filtree)
 
-    if emotion_filtrée and emotion_filtrée != "all":
-        images = images.filter(emotion=emotion_filtrée)
-    if date_filtrée:
-        images = images.filter(created_at__date=date_filtrée)
+    if date_filtree:
+        images = images.filter(created_at__date=date_filtree)
 
     emotions_disponibles = (Dream.objects
                             .filter(user=request.user)
@@ -88,8 +78,8 @@ def galerie_filtrée(request):
     return render(request, 'dream_bridge_app/galerie.html', {
         'images': images,
         'emotions': emotions_disponibles,
-        'selected_emotion': emotion_filtrée,
-        'selected_date': date_filtrée,
+        'selected_emotion': emotion_filtreedate_filtree,
+        'selected_date': date_filtree,
     })
 
 @login_required
@@ -147,11 +137,14 @@ def check_dream_status_api(request, dream_id):
 def report(request):
     user = request.user
     period = request.GET.get("period", "7d")
+    selected_emotion = request.GET.get("emotion", "all")
 
-    td = total_dreams(user, period)
-    freq = dream_frequency(user, period)
-    ed = emotion_distribution(user, period)
-    trend = emotion_trend(user, period)
+    dreams = get_dreams_in_period(user, period, emotion=selected_emotion)
+
+    td = dreams.count()
+    freq = dream_frequency(user, period, emotion=selected_emotion)
+    ed = emotion_distribution(user, period, emotion=selected_emotion)
+    trend = emotion_trend(user, period, emotion=selected_emotion)        # list[dict] [{ "date": "2025-09-01", "joy":0.5, ... }, ...]
 
     context = {
         "total_dreams": td,
@@ -159,6 +152,8 @@ def report(request):
         "emotion_distribution": json.dumps(ed),
         "emotion_trend": json.dumps(trend),
         "period": period,
+        "emotions": list(emotions_disponible(user)),
+        "selected_emotion": selected_emotion,
     }
     return render(request, "dream_bridge_app/dashboard.html", context)
 

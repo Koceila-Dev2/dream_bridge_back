@@ -9,7 +9,7 @@ urlpatterns = [
     path("accueil/", views.dashboard, name="accueil"),
     path("narrate/", views.dream_create_view, name="narrate"),
     path("dashboard/", views.report, name="dashboard"),
-    path("galerie/", views.galerie_filtrée, name="galerie"),
+    path("galerie/", views.galerie_filtree, name="galerie"),
 
     # Détail d’un rêve
     path("dreams/<uuid:dream_id>/status/", views.dream_status_view, name="dream-status"),

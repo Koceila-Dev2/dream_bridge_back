@@ -37,6 +37,21 @@
 
 <h1>Dashboard des rêves</h1>
 
+<h2></h2>
+<div class="filter-section">
+  <form method="get">
+    <label for="emotion">Filtrer par émotion :</label>
+    <select name="emotion" id="emotion" onchange="this.form.submit()">
+      <option value="all" {% if not selected_emotion or selected_emotion == 'all' %}selected{% endif %}>Toutes</option>
+      {% for e in emotions %}
+        <option value="{{ e }}" {% if selected_emotion == e %}selected{% endif %}>{{ e }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="hidden" name="period" value="{{ period }}">
+  </form>
+</div>
+<h2></h2>
 <div>
     <a href="?period=3d" class="btn {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
     <a href="?period=7d" class="btn {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
@@ -103,7 +118,7 @@
     });
 
     const trendChart = new Chart(ctxTrend, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: dates,
             datasets: datasets
