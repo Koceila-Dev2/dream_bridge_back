@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Dream Bridge{% endblock %}</title>
+  {% load static %}
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Styles principaux -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'dream_bridge_app/base.css' %}">
+
+  <style>
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          color: white;
+          overflow-x: hidden;
+      }
+
+      /* Particules */
+      .floating-particles {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          pointer-events: none; z-index: 1;
+      }
+      .particle {
+          position: absolute; width: 4px; height: 4px;
+          background: rgba(255, 255, 255, 0.6); border-radius: 50%;
+          animation: float 6s infinite ease-in-out;
+      }
+      @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+          50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+      }
+
+      /* Card Dream Bridge */
+      .card.card-dream {
+          background-color: rgba(79, 42, 145, 0.85) !important;
+          color: #ffffff !important;
+          border-radius: 1rem;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .btn.btn-dream {
+          background-color: #6f42c1 !important;
+          color: #fff !important;
+          border-radius: 0.5rem;
+          transition: all 0.3s ease;
+      }
+      .btn.btn-dream:hover {
+          background-color: #5a32a3 !important;
+      }
+  </style>
+  {% block styles %}{% endblock %}
+</head>
+<body>
+  <!-- Fond animé -->
+  <div class="floating-particles" id="particles"></div>
+
+  <main class="d-flex flex-column justify-content-center align-items-center" style="min-height: 100vh; position: relative; z-index: 2;">
+      {% block content %}{% endblock %}
+  </main>
+
+  <!-- Particules JS -->
+  <script>
+      function createParticles() {
+          const container = document.getElementById('particles');
+          for (let i = 0; i < 50; i++) {
+              const p = document.createElement('div');
+              p.className = 'particle';
+              p.style.left = Math.random() * 100 + '%';
+              p.style.top = Math.random() * 100 + '%';
+              p.style.animationDelay = Math.random() * 6 + 's';
+              p.style.animationDuration = (Math.random() * 3 + 4) + 's';
+              container.appendChild(p);
+          }
+      }
+      document.addEventListener('DOMContentLoaded', createParticles);
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,67 +1,55 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard des rêves</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        .btn {
-            padding: 8px 12px;
-            margin-right: 5px;
-            text-decoration: none;
-            background-color: #f0f0f0;
-            color: #333;
-            border-radius: 4px;
-        }
-        .btn.active {
-            font-weight: bold;
-            background-color: #007bff;
-            color: white;
-        }
-        .stats {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        canvas {
-            max-width: 600px;
-            margin-bottom: 40px;
-        }
-    </style>
-</head>
-<body>
+{% extends "dream_bridge_app/base.html" %}
 
-<h1>Dashboard des rêves</h1>
+{% block title %}Dashboard des rêves{% endblock %}
 
-<div>
-    <a href="?period=3d" class="btn {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
-    <a href="?period=7d" class="btn {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
-    <a href="?period=1m" class="btn {% if period == '1m' %}active{% endif %}">Dernier mois</a>
-    <a href="?period=all" class="btn {% if period == 'all' %}active{% endif %}">Depuis le début</a>
+{% block content %}
+<div class="container my-5">
+
+  <div class="mb-4 d-flex flex-wrap gap-2">
+    <a href="?period=3d" class="btn btn-dream {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
+    <a href="?period=7d" class="btn btn-dream {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
+    <a href="?period=1m" class="btn btn-dream {% if period == '1m' %}active{% endif %}">Dernier mois</a>
+    <a href="?period=all" class="btn btn-dream {% if period == 'all' %}active{% endif %}">Depuis le début</a>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <p><strong>Total de rêves :</strong> {{ total_dreams }}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <p><strong>Fréquence des jours avec rêve :</strong> {{ dream_frequency }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <h4 class="mb-3">Répartition des émotions</h4>
+        <canvas id="emotionChart"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <h4 class="mb-3">Tendance des émotions</h4>
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<div class="stats">
-    <p><strong>Total de rêves :</strong> {{ total_dreams }}</p>
-    <p><strong>Fréquence des jours avec rêve :</strong> {{ dream_frequency }}%</p>
-</div>
-
-<h2>Répartition des émotions</h2>
-<canvas id="emotionChart"></canvas>
-
-<h2>Tendance des émotions</h2>
-<canvas id="trendChart"></canvas>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Données transmises depuis la vue
     const emotionData = {{ emotion_distribution|safe }};
     const trendData = {{ emotion_trend|safe }};
 
-    // === Camembert émotions ===
-    const ctxEmotion = document.getElementById('emotionChart').getContext('2d');
-    const emotionChart = new Chart(ctxEmotion, {
+    const ctxEmotion = document.getElementById('emotionChart');
+    ctxEmotion.style.backgroundColor = 'rgba(111, 66, 193, 0.2)'; 
+    const emotionChart = new Chart(ctxEmotion.getContext('2d'), {
         type: 'pie',
         data: {
             labels: Object.keys(emotionData),
@@ -72,51 +60,27 @@
                 ],
             }]
         },
-        options: {
-            responsive: true
-        }
+        options: { responsive: true }
     });
 
-    // === Tendance émotions (line chart) ===
-    const ctxTrend = document.getElementById('trendChart').getContext('2d');
-
-    // Préparer les labels (dates)
+    const ctxTrend = document.getElementById('trendChart');
+    ctxTrend.style.backgroundColor = 'rgba(111, 66, 193, 0.2)';
     const dates = trendData.map(item => item.date);
-
-    // Obtenir toutes les émotions présentes
     const allEmotions = new Set();
-    trendData.forEach(item => {
-        Object.keys(item).forEach(key => {
-            if(key !== 'date') allEmotions.add(key);
-        });
-    });
-
-    // Construire datasets pour Chart.js
-    const datasets = Array.from(allEmotions).map((emo, index) => {
-        return {
-            label: emo,
-            data: trendData.map(item => item[emo] || 0),
-            borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
-            fill: false,
-        };
-    });
-
-    const trendChart = new Chart(ctxTrend, {
+    trendData.forEach(item => { Object.keys(item).forEach(key => { if(key !== 'date') allEmotions.add(key); }); });
+    const datasets = Array.from(allEmotions).map((emo, index) => ({
+        label: emo,
+        data: trendData.map(item => item[emo] || 0),
+        borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
+        fill: false,
+    }));
+    const trendChart = new Chart(ctxTrend.getContext('2d'), {
         type: 'line',
-        data: {
-            labels: dates,
-            datasets: datasets
-        },
+        data: { labels: dates, datasets: datasets },
         options: {
             responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            }
+            plugins: { legend: { position: 'top' } }
         }
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

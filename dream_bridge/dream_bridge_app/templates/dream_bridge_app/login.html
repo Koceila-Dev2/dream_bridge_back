@@ -1,7 +1,6 @@
-{% extends "dream_bridge_app/base.html" %}
-{% load widget_tweaks %}   {# <-- AJOUT #}
+{% extends "dream_bridge_app/base_auth.html" %}
+{% load widget_tweaks %}
 {% block title %}Connexion - Dream Bridge{% endblock %}
-
 
 {% block content %}
 <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
@@ -19,7 +18,7 @@
       {% for field in form %}
         <div class="mb-3">
           <label class="form-label text-white" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field|add_class:"form-control" }}   {# <-- ICI on ajoute la classe bootstrap #}
+          {{ field|add_class:"form-control" }}
           {% if field.errors %}
             <div class="text-danger small">{{ field.errors }}</div>
           {% endif %}
