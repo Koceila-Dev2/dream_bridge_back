@@ -20,7 +20,7 @@ def home(request):
     if request.user.is_authenticated:
         return redirect('dream_bridge_app:home_page')
  
-    return render(request, 'dream_bridge_app/home_page.html')
+    return reverse('login')
 
 @login_required
 def dream_create_view(request):

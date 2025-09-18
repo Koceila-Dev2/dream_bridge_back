@@ -5,7 +5,7 @@ from .views import *
 app_name = 'dream_bridge_app'
 
 urlpatterns = [
-    path('/', views.home, name='home'),
+    path('', views.home, name='home'),
     path('dreams/<uuid:dream_id>/status/', dream_status_view, name='dream-status'),
     path('home_page/', views.home_page, name='home_page'),
     path('narrate/', dream_create_view, name='narrate'),

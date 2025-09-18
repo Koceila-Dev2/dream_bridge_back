@@ -229,9 +229,7 @@ class ServicesLogicTest(TestCase):
         self.assertEqual(self.dream.status, Dream.DreamStatus.FAILED)
         self.assertIn("Erreur API simulée", self.dream.error_message)
 
-# ---
-# Catégorie 4 : Tests de Sécurité
-# ---
+
 class SecurityTest(TestCase):
     """Vérifie que les utilisateurs ne peuvent pas accéder aux données des autres."""
     def setUp(self):
@@ -252,7 +250,7 @@ class SecurityTest(TestCase):
         url = reverse('dream_bridge_app:dream-status', kwargs={'dream_id': self.dream_user1.id})
         response = self.client.get(url)
         
-        # On s'attend à être redirigé vers la page d'accueil, car la vue ne trouve pas
+        # On s'attend à être redirigé vers la page de connexion, car la vue ne trouve pas
         # le rêve pour l'utilisateur actuellement connecté.
-        self.assertRedirects(response, reverse('dream_bridge_app:home'))
+        self.assertRedirects(response, reverse('login'))
 
