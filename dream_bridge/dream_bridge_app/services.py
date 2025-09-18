@@ -83,7 +83,7 @@ def build_personal_message_prompt(dream: Dream, user) -> str:
 
     ctx = {
         "username": user.get_full_name() or user.username,
-        "first_name": user.first_name or user.username,   # ✅ ajouté
+        "first_name": user.first_name or user.username,   
         "believes_in_astrology": "True" if believes else "False",
         "zodiac_sign": sign,
         "dream_transcription": (dream.transcription or "").strip(),
@@ -259,6 +259,10 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         # Génération auto du message personnalisé
         try:
             generate_personal_message_for_dream(str(dream.id), force=True)
+
+            dream.personal_phrase_date = timezone.localdate()
+            dream.save(update_fields=["personal_phrase", "personal_phrase_date", "updated_at"])
+
         except Exception:
             pass
 
@@ -355,39 +359,39 @@ def get_daily_message(user_id, day="TODAY") -> str:
         return get_quote_of_the_day()
 
 
-# def update_daily_phrase_in_dream(user, dream_id: str | None = None):
-#     """
-#     Écrit la phrase/horoscope du jour dans un rêve (le plus récent par défaut).
-#     ► Toujours réécrit (plus de garde par date).
-#     """
-#     message = get_daily_message(user.id)
-#     today = timezone.localdate()
+def update_daily_phrase_in_dream(user, dream_id: str | None = None):
+    """
+    Écrit la phrase/horoscope du jour dans un rêve (le plus récent par défaut).
+    ► Toujours réécrit (plus de garde par date).
+    """
+    message = get_daily_message(user.id)
+    today = timezone.localdate()
 
-#     qs = Dream.objects.filter(user=user)
-#     if dream_id:
-#         qs = qs.filter(id=dream_id)
+    qs = Dream.objects.filter(user=user)
+    if dream_id:
+        qs = qs.filter(id=dream_id)
 
-#     dream = qs.order_by("-created_at").first()
-#     if not dream:
-#         return None
+    dream = qs.order_by("-created_at").first()
+    if not dream:
+        return None
 
-#     dream.phrase = message or ""
-#     dream.phrase_date = today
-#     dream.save(update_fields=["phrase", "phrase_date", "updated_at"])
-#     return dream
+    dream.phrase = message or ""
+    dream.phrase_date = today
+    dream.save(update_fields=["phrase", "phrase_date", "updated_at"])
+    return dream
 
-# def update_daily_phrase_for_all_users_latest_dream() -> int:
-#     user_ids = (Dream.objects.values_list("user_id", flat=True).order_by("user_id").distinct())
-#     updated = 0
-#     UserModel = get_user_model()
-#     for uid in user_ids:
-#         try:
-#             user = UserModel.objects.get(id=uid)
-#             if update_daily_phrase_in_dream(user):
-#                 updated += 1
-#         except Exception:
-#             pass
-#     return updated
+def update_daily_phrase_for_all_users_latest_dream() -> int:
+    user_ids = (Dream.objects.values_list("user_id", flat=True).order_by("user_id").distinct())
+    updated = 0
+    UserModel = get_user_model()
+    for uid in user_ids:
+        try:
+            user = UserModel.objects.get(id=uid)
+            if update_daily_phrase_in_dream(user):
+                updated += 1
+        except Exception:
+            pass
+    return updated
 
 
 # ----------------------- Message personnalisé -----------------------
@@ -429,9 +433,16 @@ def generate_personal_message_for_dream(
         # ultime filet de sécurité
         msg = _fallback_personal_message(dream, dream.user)
 
-    # ► Sauvegarde INCONDITIONNELLE
+
+
+    dream.phrase = get_daily_message(dream.user_id)
+
+    
+
     dream.personal_phrase = msg or ""
     dream.personal_phrase_date = timezone.localdate()
-    dream.save(update_fields=["personal_phrase", "personal_phrase_date", "updated_at"])
+    dream.phrase_date = timezone.localdate()
+
+    dream.save(update_fields=["phrase", "personal_phrase", "personal_phrase_date", "updated_at", "phrase_date"])
 
     return dream.personal_phrase
