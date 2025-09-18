@@ -1,89 +1,110 @@
-from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta
-import pandas as pd
+from collections import Counter
 from .models import Dream
 
+# --- Liste des émotions disponibles pour un utilisateur ---
+def emotions_disponible(user):
+    qs = Dream.objects.all()
+    if user is not None:
+        qs = qs.filter(user=user)
+    return qs.values_list('emotion', flat=True).distinct()
 
-# Filtrage par période
-def get_dreams_in_period(user, period="all"):
-    now = timezone.now()
+
+# --- Récupérer les rêves d’un utilisateur sur une période, avec filtre émotion ---
+def get_dreams_in_period(user, period="all", emotion=None):
+    today = timezone.localdate()
+    qs = Dream.objects.filter(user=user).order_by("created_at")
+
     if period == "3d":
-        start_date = now - timedelta(days=3)
+        start_date = today - timedelta(days=2)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
     elif period == "7d":
-        start_date = now - timedelta(days=7)
-    elif period == "1m":
-        start_date = now - timedelta(days=30)
-    else:
-        start_date = None
+        start_date = today - timedelta(days=6)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+    elif period in ("1m", "30d"):
+        start_date = today - timedelta(days=29)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+    # 'all' ou autres → pas de filtre par date, déjà pris en compte
 
-    qs = Dream.objects.filter(user=user)
-    if start_date:
-        qs = qs.filter(created_at__gte=start_date)
+    if emotion and emotion != "all":
+        qs = qs.filter(emotion=emotion)
+
     return qs
 
-# Nombre total de rêves
-def total_dreams(user, period="all"):
-    return get_dreams_in_period(user, period).count()
 
-# Fréquence des enregistrements (nb jours avec au moins 1 rêve / nb jours dans période)
-def dream_frequency(user, period="7d"):
-    qs = get_dreams_in_period(user, period)
+# --- Total de rêves ---
+def total_dreams(user, period="all", emotion=None):
+    return get_dreams_in_period(user, period, emotion=emotion).count()
+
+
+# --- Fréquence des jours avec rêve ---
+# --- Fréquence des jours avec rêve corrigée ---
+def dream_frequency(user, period="all", emotion=None):
+    qs = get_dreams_in_period(user, period, emotion=emotion)
     if not qs.exists():
-        return 0
-    
-    days_with_dreams = qs.values("created_at__date").distinct().count()
-    
+        return 0.0
+
+    # Extraire les dates uniques des rêves
+    dream_days = set(qs.values_list("created_at__date", flat=True))
+
+    # Calcul du nombre total de jours selon la période
+    today = timezone.localdate()
     if period == "3d":
         total_days = 3
     elif period == "7d":
         total_days = 7
-    elif period == "1m":
+    elif period in ("1m", "30d"):
         total_days = 30
     else:
-        first_dream = Dream.objects.filter(user=user).order_by("created_at").first()
-        if not first_dream:
-            return 0
-        total_days = (timezone.now().date() - first_dream.created_at.date()).days + 1
-    
-    return round((days_with_dreams / total_days) * 100, 2)  # % de jours avec rêve
+        # Pour 'all' ou autre, prendre la plage entre le plus ancien et le plus récent rêve
+        earliest = qs.earliest('created_at').created_at.date()
+        latest = qs.latest('created_at').created_at.date()
+        total_days = max(1, (latest - earliest).days + 1)
 
-# Répartition des émotions dominantes (camembert)
-def emotion_distribution(user, period="all"):
-    qs = get_dreams_in_period(user, period)
-    emotions_count = {}
+    # Fréquence des jours avec rêve, limitée à 100 %
+    frequency = len(dream_days) / total_days * 100
+    return round(min(frequency, 100.0), 2)
 
-    for dream in qs:
-        emo = dream.emotion  # champ str
-        if emo:  # ignore les valeurs vides
-            emotions_count[emo] = emotions_count.get(emo, 0) + 1
 
-    total = sum(emotions_count.values())
+
+# --- Répartition des émotions ---
+def emotion_distribution(user, period="all", emotion=None):
+    qs = get_dreams_in_period(user, period, emotion=emotion)
+    if not qs.exists():
+        return {}
+
+    counts = Counter(d.emotion for d in qs if d.emotion)
+    total = sum(counts.values())
     if total == 0:
         return {}
 
-    # Retour en proportions
-    return {emo: round(val / total, 3) for emo, val in emotions_count.items()}
+    return {k: round(v / total, 3) for k, v in counts.items()}
 
 
-# Tendance des émotions (time series)
-def emotion_trend(user, period="7d"):
-    qs = get_dreams_in_period(user, period).order_by("created_at")
-    data = []
+# --- Tendance des émotions dans le temps ---
+def emotion_trend(user, period="all", emotion=None):
+    qs = get_dreams_in_period(user, period, emotion=emotion)
+    if not qs.exists():
+        return {}
 
-    for dream in qs:
-        # Convertir la date en string pour JSON
-        data.append({
-            "date": dream.created_at.date().isoformat(),  # <-- ici
-            "emotion": dream.emotion
-        })
+    trend = {}
+    today = timezone.localdate()
 
-    if not data:
-        return []
+    if period == "3d":
+        days_range = [today - timedelta(days=2), today - timedelta(days=1), today]
+    elif period == "7d":
+        days_range = [today - timedelta(days=i) for i in reversed(range(7))]
+    elif period in ("1m", "30d"):
+        days_range = [today - timedelta(days=i) for i in reversed(range(30))]
+    else:
+        days_range = sorted(qs.values_list("created_at__date", flat=True).distinct())
 
-    df = pd.DataFrame(data)
-    df = df.groupby(["date", "emotion"]).size().unstack(fill_value=0)
-    df = df.reset_index()
+    for date in days_range:
+        dreams_on_day = qs.filter(created_at__date=date)
+        counts = Counter(d.emotion for d in dreams_on_day if d.emotion)
+        total = sum(counts.values())
+        date_key = date.isoformat() if hasattr(date, "isoformat") else str(date)
+        trend[date_key] = {k: round(v / total, 3) for k, v in counts.items()} if total > 0 else {}
 
-    return df.to_dict(orient="records")
-
+    return trend
