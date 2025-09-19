@@ -1,0 +1,51 @@
+/* ==== Card principale ==== */
+.card-dream {
+    background-color: #4f2a91 !important;  /* violet foncé */
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff; /* texte blanc */
+}
+
+
+/* ==== Effet hover ==== */
+/* ==== Effet hover ==== */
+.card-dream:hover {
+    transform: translateY(-5px) scale(1.05); /* grossit légèrement */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* ombre plus marquée */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/* ==== Titres dans les cards ==== */
+.card-dream h4 {
+    color: #fff;       /* Texte blanc pour contraste */
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* ==== Canvas dans la card ==== */
+.card-dream canvas {
+    background-color: #6f42c1; /* Fond violet plus clair pour faire ressortir le graphique */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 768px) {
+    .card-dream {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .card-dream canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+}

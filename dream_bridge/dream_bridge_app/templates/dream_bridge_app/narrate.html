@@ -1,47 +1,23 @@
 {% extends "dream_bridge_app/base.html" %}
-{% load static %} {% block title %}Accueil - Dream Bridge{% endblock %}
+{% load static %}
+
+{% block title %}Raconter un rêve - Dream Bridge{% endblock %}
 
 {% block content %}
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
-     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">  <div class="container-fluid">
-    <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a>
-        </li>
-      </ul>
-
-      <div class="d-flex align-items-center">
-        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
-        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
-      </div>
-    </div>
-  </div>
-</nav>
 <section class="process-section depth-layer">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
-                <div class="process-card fade-in-up">
-                    <div class="process-icon">🎙️</div>
-                    <h3 class="process-title">Racontez votre rêve</h3>
+                <div class="card card-dream shadow-lg p-4 fade-in-up text-center">
+                    <div class="process-icon fs-1">🎙️</div>
+                    <h3 class="process-title mb-3">Racontez votre rêve</h3>
                     <p class="process-description" id="recorder-instructions">
-                        Cliquez sur "Démarrer" pour commencer l'enregistrement de votre récit.
+                        Cliquez sur <strong>"Démarrer"</strong> pour commencer l'enregistrement de votre récit.
                     </p>
 
                     <div id="recorder-ui" class="mt-4" data-upload-url="{% url 'dream_bridge_app:narrate' %}">
                         {% csrf_token %}
-                        <button id="startButton" class="btn btn-light">Démarrer l'enregistrement</button>
+                        <button id="startButton" class="btn btn-dream">Démarrer l'enregistrement</button>
                         <button id="stopButton" class="btn btn-danger" disabled>Arrêter l'enregistrement</button>
                     </div>
 

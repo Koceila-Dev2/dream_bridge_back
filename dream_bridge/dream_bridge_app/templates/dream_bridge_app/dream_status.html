@@ -3,29 +3,6 @@
 {% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
 
 {% block content %}
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark"
-     style="background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.2);">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold text-white" href="#">🌙 Dream Bridge</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-  <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:accueil' %}">🏠 Accueil</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
-      </ul>
-      <div class="d-flex align-items-center">
-        <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
-        <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}
-          <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</nav>
-
 <main class="main-content depth-layer">
   <div class="container">
     <div class="row justify-content-center">

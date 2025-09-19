@@ -1,50 +1,20 @@
+{% extends "dream_bridge_app/base.html" %}
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard des rêves</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        .btn {
-            padding: 8px 12px;
-            margin-right: 5px;
-            text-decoration: none;
-            background-color: #f0f0f0;
-            color: #333;
-            border-radius: 4px;
-        }
-        .btn.active {
-            font-weight: bold;
-            background-color: #007bff;
-            color: white;
-        }
-        .stats {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        canvas {
-            max-width: 600px;
-            margin-bottom: 40px;
-        }
-    </style>
-</head>
-<body>
+{% block title %}Dashboard des rêves{% endblock %}
 
-<h1>Dashboard des rêves</h1>
+{% block content %}
+<div class="container my-5">
 
-<div>
-    <a href="?period=3d" class="btn {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
-    <a href="?period=7d" class="btn {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
-    <a href="?period=1m" class="btn {% if period == '1m' %}active{% endif %}">Dernier mois</a>
-    <a href="?period=all" class="btn {% if period == 'all' %}active{% endif %}">Depuis le début</a>
+  <!-- Sélecteur de période -->
+  <div class="mb-4 d-flex flex-wrap gap-2">
+    <a href="?period=3d" class="btn btn-dream {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
+    <a href="?period=7d" class="btn btn-dream {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
+    <a href="?period=1m" class="btn btn-dream {% if period == '1m' %}active{% endif %}">Dernier mois</a>
+    <a href="?period=all" class="btn btn-dream {% if period == 'all' %}active{% endif %}">Depuis le début</a>
+  </div>
 </div>
 
-<form method="get" style="margin-top:20px; margin-bottom:20px;">
+<div class="container my-4"><form method="get" style="margin-top:20px; margin-bottom:20px;">
     <input type="hidden" name="period" value="{{ period }}">
     <label for="emotion"><strong>Filtrer par émotion :</strong></label>
     <select name="emotion" id="emotion" onchange="this.form.submit()" style="margin-left:10px;">
@@ -56,25 +26,47 @@
 </form>
 </div>
 
-<div class="stats">
-    <p><strong>Total de rêves :</strong> {{ total_dreams }}</p>
-    <p><strong>Fréquence des jours avec rêve :</strong> {{ dream_frequency }}%</p>
+
+  <!-- Statistiques globales -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg text-center">
+        <h5>Total de rêves</h5>
+        <p class="fs-3 fw-bold">{{ total_dreams }}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg text-center">
+        <h5>Fréquence des jours avec rêve</h5>
+        <p class="fs-3 fw-bold">{{ dream_frequency }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <h4 class="mb-3 text-center">Répartition des émotions</h4>
+        <canvas id="emotionChart" height="300"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card card-dream p-4 shadow-lg">
+        <h4 class="mb-3 text-center">Tendance des émotions</h4>
+        <canvas id="trendChart" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<h2>Répartition des émotions</h2>
-<canvas id="emotionChart"></canvas>
-
-<h2>Tendance des émotions</h2>
-<canvas id="trendChart"></canvas>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Données transmises depuis la vue
-    const emotionData = JSON.parse('{{ emotion_distribution|escapejs }}');
-    const trendData = JSON.parse('{{ emotion_trend|escapejs }}');
-
-    // === Camembert émotions ===
-    const ctxEmotion = document.getElementById('emotionChart').getContext('2d');
-    const emotionChart = new Chart(ctxEmotion, {
+    // ==== Répartition des émotions ====
+    const emotionData = {{ emotion_distribution|safe }};
+    const ctxEmotion = document.getElementById('emotionChart');
+    const emotionChart = new Chart(ctxEmotion.getContext('2d'), {
         type: 'pie',
         data: {
             labels: Object.keys(emotionData),
