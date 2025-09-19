@@ -3,10 +3,10 @@
 {% block title %}Dashboard des rêves{% endblock %}
 
 {% block content %}
-<div class="container my-5">
 
+<div class="container my-5">
   <!-- Sélecteur de période -->
-  <div class="mb-4 d-flex flex-wrap gap-2">
+  <div class="mb-4 d-flex flex-wrap gap-2 justify-content-center">
     <a href="?period=3d" class="btn btn-dream {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
     <a href="?period=7d" class="btn btn-dream {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
     <a href="?period=1m" class="btn btn-dream {% if period == '1m' %}active{% endif %}">Dernier mois</a>
@@ -14,29 +14,32 @@
   </div>
 </div>
 
-<div class="container my-4"><form method="get" style="margin-top:20px; margin-bottom:20px;">
+
+<div class="container my-4 d-flex justify-content-center">
+  <form method="get" class="card card-dream p-3 shadow-lg d-flex flex-row align-items-center gap-3" style="max-width:500px; margin:auto; background:rgba(30,30,60,0.95); border-radius:18px;">
     <input type="hidden" name="period" value="{{ period }}">
-    <label for="emotion"><strong>Filtrer par émotion :</strong></label>
-    <select name="emotion" id="emotion" onchange="this.form.submit()" style="margin-left:10px;">
-        <option value="all" {% if selected_emotion == 'all' %}selected{% endif %}>Toutes</option>
-        {% for emo in emotions %}
-            <option value="{{ emo }}" {% if emo == selected_emotion %}selected{% endif %}>{{ emo }}</option>
-        {% endfor %}
+    <label for="emotion" class="mb-0" style="color:#fff; font-weight:600; font-size:1.1rem;">Filtrer par émotion :</label>
+    <select name="emotion" id="emotion" onchange="this.form.submit()" class="form-select form-select-sm" style="width:140px; margin-left:10px; background:#23234a; color:#fff; border:none; border-radius:8px; font-weight:500;">
+      <option value="all" {% if selected_emotion == 'all' %}selected{% endif %}>Toutes</option>
+      {% for emo in emotions %}
+        <option value="{{ emo }}" {% if emo == selected_emotion %}selected{% endif %}>{{ emo }}</option>
+      {% endfor %}
     </select>
-</form>
+    <button type="submit" class="btn btn-dream ms-2" style="font-size:0.95rem; padding:6px 18px;">Filtrer</button>
+  </form>
 </div>
 
 
   <!-- Statistiques globales -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-6">
-      <div class="card card-dream p-4 shadow-lg text-center">
+  <div class="row g-4 mb-4 justify-content-center">
+    <div class="col-md-5 d-flex justify-content-center">
+      <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
         <h5>Total de rêves</h5>
         <p class="fs-3 fw-bold">{{ total_dreams }}</p>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card card-dream p-4 shadow-lg text-center">
+    <div class="col-md-5 d-flex justify-content-center">
+      <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
         <h5>Fréquence des jours avec rêve</h5>
         <p class="fs-3 fw-bold">{{ dream_frequency }}%</p>
       </div>
@@ -44,16 +47,17 @@
   </div>
 
   <!-- Graphiques -->
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="card card-dream p-4 shadow-lg">
+  <div class="row g-4 justify-content-center">
+    <div class="col-md-5 d-flex justify-content-center">
+      <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
         <h4 class="mb-3 text-center">Répartition des émotions</h4>
         <canvas id="emotionChart" height="300"></canvas>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card card-dream p-4 shadow-lg">
+    <div class="col-md-5 d-flex justify-content-center">
+      <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
         <h4 class="mb-3 text-center">Tendance des émotions</h4>
+        <div id="trendEmpty" style="display:none; text-align:center; color:#fff; font-size:1.1rem; margin-top:40px;">Aucune donnée pour la période sélectionnée.</div>
         <canvas id="trendChart" height="300"></canvas>
       </div>
     </div>
@@ -66,62 +70,100 @@
     // ==== Répartition des émotions ====
     const emotionData = {{ emotion_distribution|safe }};
     const ctxEmotion = document.getElementById('emotionChart');
-    const emotionChart = new Chart(ctxEmotion.getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: Object.keys(emotionData),
-            datasets: [{
-                data: Object.values(emotionData),
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#8AFF33', '#FF33EC', '#33FFF9'
-                ],
-            }]
-        },
-        options: {
-            responsive: true
+  const chartColors = [
+    '#FF6384', // rose
+    '#36A2EB', // bleu
+    '#FFCE56', // jaune
+    '#8AFF33', // vert
+    '#FF33EC', // violet
+    '#33FFF9'  // turquoise
+  ];
+
+  const emotionChart = new Chart(ctxEmotion.getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(emotionData),
+      datasets: [{
+        data: Object.values(emotionData),
+        backgroundColor: chartColors,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#fff',
+            font: { size: 15, family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', weight: 'bold' }
+          }
         }
-    });
+      }
+    }
+  });
 
-    // === Tendance émotions (line chart) ===
-    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  // === Tendance émotions (line chart) ===
+  const trendData = JSON.parse('{{ emotion_trend|escapejs }}');
+  const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  let trendEmpty = document.getElementById('trendEmpty');
 
-    // Préparer les labels (dates)
-    const dates = trendData.map(item => item.date);
-
-    // Obtenir toutes les émotions présentes
+  let dates = [];
+  let datasets = [];
+  if (trendData && trendData.length > 0) {
+    dates = trendData.map(item => item.date);
     const allEmotions = new Set();
     trendData.forEach(item => {
-        Object.keys(item).forEach(key => {
-            if(key !== 'date') allEmotions.add(key);
-        });
+      Object.keys(item).forEach(key => {
+        if(key !== 'date') allEmotions.add(key);
+      });
     });
-
-    // Construire datasets pour Chart.js
-    const datasets = Array.from(allEmotions).map((emo, index) => {
-        return {
-            label: emo,
-            data: trendData.map(item => item[emo] || 0),
-            borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
-            fill: false,
-        };
+    datasets = Array.from(allEmotions).map((emo, index) => {
+      return {
+        label: emo,
+        data: trendData.map(item => item[emo] || 0),
+        borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
+        fill: false,
+      };
     });
+    trendEmpty.style.display = 'none';
+  } else {
+    trendEmpty.style.display = 'block';
+  }
 
-    const trendChart = new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            }
+  // Applique les mêmes couleurs aux barres que le camembert
+  datasets.forEach((ds, idx) => {
+    ds.backgroundColor = chartColors[idx % chartColors.length];
+    ds.borderColor = chartColors[idx % chartColors.length];
+  });
+
+  const trendChart = new Chart(ctxTrend, {
+    type: 'bar',
+    data: {
+      labels: dates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color: '#fff',
+            font: { size: 14, family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', weight: 'bold' }
+          }
         }
-    });
+      },
+      scales: {
+        x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+        y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+      }
+    }
+  });
 </script>
 
+<div style="height:40px;"></div>
 
 {% endblock %}
+
+
+

@@ -144,13 +144,19 @@ def report(request):
     td = dreams.count()
     freq = dream_frequency(user, period, emotion=selected_emotion)
     ed = emotion_distribution(user, period, emotion=selected_emotion)
-    trend = emotion_trend(user, period, emotion=selected_emotion)        # list[dict] [{ "date": "2025-09-01", "joy":0.5, ... }, ...]
+    # Convertit le dict {date: {emo: val}} en list[dict] [{date:..., emo1:..., emo2:...}]
+    trend_raw = emotion_trend(user, period, emotion=selected_emotion)
+    trend_list = []
+    for date, emos in trend_raw.items():
+        entry = {"date": date}
+        entry.update(emos)
+        trend_list.append(entry)
 
     context = {
         "total_dreams": td,
         "dream_frequency": freq,
         "emotion_distribution": json.dumps(ed),
-        "emotion_trend": json.dumps(trend),
+        "emotion_trend": json.dumps(trend_list),
         "period": period,
         "emotions": list(emotions_disponible(user)),
         "selected_emotion": selected_emotion,

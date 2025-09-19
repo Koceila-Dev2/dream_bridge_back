@@ -5,7 +5,7 @@
 <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
   <div class="text-center mb-5">
     <h1 class="display-5 text-white">Bienvenue dans ton espace de rêves</h1>
-    <p class="lead text-white">Explore, raconte et revivez vos plus beaux songes</p>
+    <p class="lead text-white">Explore, raconte et revit tes plus beaux songes</p>
   </div>
 
   {% if daily_message %}
@@ -24,15 +24,15 @@
 
   <div class="row w-100 justify-content-center">
     <div class="col-md-4 mb-4">
-      <div class="card bg-transparent text-white border-0 shadow-lg text-center p-4" style="backdrop-filter: blur(12px);">
+      <div class="card card-dream text-center p-4">
         <div class="fs-2 mb-2">🎙️</div>
         <h4>Raconter un rêve</h4>
-        <p>Exprimez-vous à voix haute. L'IA se charge de tout transformer.</p>
+        <p>Reisualisez vos plus beaux rêves.</p>
         <a href="{% url 'dream_bridge_app:narrate' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Commencer</a>
       </div>
     </div>
     <div class="col-md-4 mb-4">
-      <div class="card bg-transparent text-white border-0 shadow-lg text-center p-4" style="backdrop-filter: blur(12px);">
+      <div class="card card-dream text-center p-4">
         <div class="fs-2 mb-2">📚</div>
         <h4>Ma bibliothèque</h4>
         <p>Accédez à tous vos rêves enregistrés et illustrés.</p>
