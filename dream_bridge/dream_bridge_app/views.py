@@ -17,10 +17,7 @@ from django.shortcuts import render
 from .metrics_dashboard import *
 
 def home(request):
-    if request.user.is_authenticated:
-        return redirect('dream_bridge_app:dashboard')
- 
-    return render(request, 'dream_bridge_app/home.html')
+    return render(request, 'dream_bridge_app/accueil.html')
 
 
 @login_required
@@ -50,23 +47,7 @@ def dream_create_view(request):
 
 @login_required
 def dashboard(request):
-    """
-    Affiche la phrase/horoscope du jour et l’enregistre dans le
-    dernier rêve de l’utilisateur (1×/jour).
-    """
-    daily_message = get_daily_message(request.user.id)
-
-    today_key = timezone.localdate().isoformat()
-    if request.session.get("quote_saved_on") != today_key:
-        try:
-            update_daily_phrase_in_dream(request.user)  # écrit dans le dernier rêve s’il existe
-        except Exception:
-            pass
-        request.session["quote_saved_on"] = today_key
-
-    return render(request, 'dream_bridge_app/dashboard.html', {
-        'daily_message': daily_message,
-    })
+    return dashboard_view(request)
 
 
 @login_required
@@ -151,4 +132,4 @@ def dashboard_view(request):
         "emotion_trend": json.dumps(trend),
         "period": period,
     }
-    return render(request, "dream_bridge_app/report.html", context)
+    return render(request, "dream_bridge_app/dashboard.html", context)
