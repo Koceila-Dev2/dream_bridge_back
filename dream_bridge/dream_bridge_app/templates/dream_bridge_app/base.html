@@ -1,10 +1,10 @@
+{% load static %} 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dream Bridge{% endblock %}</title>
-    {% load static %} 
 
     <!-- Styles principaux -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -109,7 +109,7 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: rgba(0,0,0,0.1); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.2);">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold text-white" href="{% url 'dream_bridge_app:dashboard' %}">🌙 Dream Bridge</a>
+    <a class="navbar-brand fw-bold text-white" href="{% url 'dream_bridge_app:home' %}">🌙 Dream Bridge</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -123,7 +123,8 @@
       <div class="d-flex align-items-center">
         {% if user.is_authenticated %}
           <!-- <span class="me-3 text-white">👤 {{ user.username }}</span> -->
-            <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">👤 {{ user.username }}</a>
+           <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">⚙️ Modifier le profil</a>
+            <a class="me-3 text-white text-decoration-none">👤 {{ user.username }}</a>
           <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
         {% else %}
           <a href="{% url 'accounts:login' %}" class="btn btn-light btn-sm me-2">Connexion</a>

@@ -1,11 +1,11 @@
-{% extends "accounts/base.html" %}
+{% extends "accounts/base_auth.html" %}
 {% load widget_tweaks %}
 
 {% block title %}Connexion - Dream Bridge{% endblock %}
 
 {% block content %}
 <main class="main-content d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-  <div class="card shadow-lg p-4 border-0" style="max-width: 400px; width: 100%;">
+  <div class="card card-dream shadow-lg p-4 border-0" style="max-width: 400px; width: 100%;">
     <h2 class="text-center mb-3">🌙 Dream Bridge</h2>
     <p class="text-center mb-4">Connecte-toi pour accéder à ton univers de rêves</p>
 
@@ -29,13 +29,13 @@
       <input type="hidden" name="next" value="{% url 'dream_bridge_app:accueil' %}">
 
       <div class="d-grid">
-        <button type="submit" class="btn btn-primary btn-lg">Connexion</button>
+        <button type="submit" class="btn btn-dream btn-lg">Connexion</button>
       </div>
     </form>
 
     <div class="text-center mt-3">
-      <a href="{% url 'accounts:signup' %}" class="small">Créer un compte</a><br>
-      <a href="{% url 'accounts:password_reset' %}" class="small">Mot de passe oublié ?</a>
+      <a href="{% url 'accounts:signup' %}" class="small text-white-50">Créer un compte</a><br>
+      <a href="{% url 'accounts:password_reset' %}" class="small text-white-50">Mot de passe oublié ?</a>
     </div>
   </div>
 </main>

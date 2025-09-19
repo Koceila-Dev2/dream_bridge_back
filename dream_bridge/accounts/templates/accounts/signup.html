@@ -1,54 +1,46 @@
-{% extends "accounts/base.html" %}
+{% extends "accounts/base_auth.html" %}
 
 {% block title %}Inscription - Dream Bridge{% endblock %}
 
 {% block content %}
-<main class="main-content">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8">
-                <div class="process-card">
-                    <h3 class="process-title mb-4">Créer un compte</h3>
-                    
-                    <form method="post" class="text-start">
-                        {% csrf_token %}
-                        
-                        <!-- Affichage des erreurs non liées à un champ (ex: "utilisateur existe déjà") -->
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+<main class="main-content d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+  <div class="card card-dream shadow-lg p-4 border-0" style="max-width: 400px; width: 100%;">
+    <h2 class="text-center mb-3">🌙 Dream Bridge</h2>
+    <p class="text-center mb-4">Crée ton compte pour commencer ton voyage dans l’univers des rêves</p>
 
-                        <!-- On boucle sur les champs visibles du formulaire -->
-                        {% for field in form.visible_fields %}
-                            <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                
-                                <!-- On ajoute les attributs et classes CSS directement ici -->
-                                {{ field }}
+    <form method="post" novalidate>
+      {% csrf_token %}
 
-                                <!-- Affichage des erreurs spécifiques à ce champ -->
-                                {% for error in field.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                        
-                        <!-- Notre propre aide pour le mot de passe, beaucoup plus concise -->
-                        <div class="form-text text-white-50 mb-3">
-                            Le mot de passe doit contenir au moins 8 caractères.
-                        </div>
-
-                        <div class="d-grid">
-                           <button type="submit" class="btn btn-light mt-3">S'inscrire</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+      {% if form.non_field_errors %}
+        <div class="text-danger small mb-2">
+          {% for error in form.non_field_errors %}
+            {{ error }}<br>
+          {% endfor %}
         </div>
+      {% endif %}
+
+      {% for field in form.visible_fields %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="form-text text-white-50 mb-3">
+        Le mot de passe doit contenir au moins 8 caractères.
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-dream btn-lg mt-3">S'inscrire</button>
+      </div>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{% url 'accounts:login' %}" class="small text-white-50">Déjà un compte ? Connecte-toi</a>
     </div>
+  </div>
 </main>
 {% endblock %}

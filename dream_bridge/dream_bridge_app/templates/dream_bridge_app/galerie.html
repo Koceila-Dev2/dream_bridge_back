@@ -50,14 +50,13 @@
     {% if images %}
       {% for img in images %}
         <div class="col-6 col-md-4 col-lg-3">
-          <div class="card border-0 shadow h-100" style="background-color: rgba(255,255,255,0.05);">
+          <div class="card card-dream shadow-lg h-100">
 
-            {# --- Image ou placeholder si absente --- #}
             {% if img.generated_image %}
-              <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top">
+              <img src="{{ img.generated_image.url }}" alt="Image générée" class="card-img-top rounded-top">
             {% else %}
               <div class="card-img-top d-flex align-items-center justify-content-center"
-                   style="height: 160px; background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.12);">
+                   style="height: 160px; background: rgba(111,66,193,0.2); border-bottom: 1px solid rgba(255,255,255,0.2);">
                 <span class="small text-white-50">
                   Aucune image — statut : {{ img.get_status_display }}
                 </span>
@@ -69,7 +68,6 @@
                 {{ img.created_at|date:"d/m/Y" }} – {{ img.emotion|default:"" }}
               </p>
 
-              {# --- Priorité d’affichage du texte --- #}
               {% if img.personal_phrase %}
                 <p class="card-text small flex-grow-1" style="opacity:.9; white-space:pre-line;">
                   {{ img.personal_phrase|truncatechars:120 }}
@@ -85,7 +83,6 @@
               {% endif %}
 
               <div class="mt-2 d-grid gap-2">
-                <!-- Formulaire de génération/régénération supprimé -->
                 <a class="btn btn-outline-light btn-sm" href="{% url 'dream_bridge_app:dream-status' img.id %}">
                   👁️ Voir le rêve
                 </a>
