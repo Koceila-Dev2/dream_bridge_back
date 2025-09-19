@@ -23,10 +23,10 @@ class SignUpView(CreateView):
 
 @require_http_methods(["GET", "POST"])
 def logout_to_home(request):
-    """Déconnecte puis redirige vers l’accueil."""
+    """Déconnecte puis redirige vers la page de login."""
     logout(request)
     messages.success(request, "Vous avez été déconnecté.")
-    return redirect("dream_bridge_app:home")
+    return redirect("accounts:login")
 
 
 @login_required
