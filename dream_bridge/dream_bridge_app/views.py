@@ -147,7 +147,7 @@ def report(request):
     ed = emotion_distribution(user, period, emotion=selected_emotion)
 
     # --- Nouvelle métrique : longueur moyenne des transcriptions ---
-    transcription_data = transcription_trend(user, period, emotion=selected_emotion)
+    transcription_data = get_transcription_trend(user, period, emotion=selected_emotion)
 
     context = {
         "total_dreams": td,

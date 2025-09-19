@@ -2,6 +2,8 @@ from django.utils import timezone
 from datetime import timedelta
 from collections import Counter
 from .models import Dream
+from collections import defaultdict, Counter # à regarder de plus près
+
 
 # --- Liste des émotions disponibles pour un utilisateur ---
 def emotions_disponible(user):
@@ -78,29 +80,46 @@ def emotion_distribution(user, period="all", emotion=None):
 
 # --- Longueur moyenne des transcriptions ---
 # --- Longueur moyenne des récits ---
-def transcription_trend(user, period="all", emotion=None):
-    qs = get_dreams_in_period(user, period, emotion=emotion)
+def get_transcription_trend(user, period="all", emotion=None):
+    """
+    Retourne la longueur moyenne des transcriptions par jour pour un utilisateur,
+    en tenant compte de la période et éventuellement d'une émotion filtrée.
+    Renvoie une liste de dicts : [{'date': 'YYYY-MM-DD', 'avg_length': 42.5}, ...]
+    """
+    today = timezone.localdate()
+    qs = Dream.objects.filter(user=user, transcription__isnull=False).order_by("created_at")
+
+    # Filtre sur la période
+    if period == "3d":
+        start_date = today - timedelta(days=2)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+    elif period == "7d":
+        start_date = today - timedelta(days=6)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+    elif period in ("1m", "30d"):
+        start_date = today - timedelta(days=29)
+        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+    # 'all' → pas de filtre
+
+    # Filtre par émotion si demandé
+    if emotion and emotion != "all":
+        qs = qs.filter(emotion=emotion)
+
     if not qs.exists():
         return []
 
-    # Groupe les rêves par date
-    trend = {}
+    # Regrouper par jour
+    lengths_by_day = defaultdict(list)
     for dream in qs:
-        date_str = dream.created_at.date().isoformat()
-        length = len(dream.transcription or "")
-        if date_str not in trend:
-            trend[date_str] = []
-        trend[date_str].append(length)
+        day = dream.created_at.date()
+        lengths_by_day[day].append(len(dream.transcription))
 
-    # Calcul de la moyenne par date
-    trend_list = []
-    for date_str, lengths in sorted(trend.items()):
-        avg_length = sum(lengths) / len(lengths)
-        trend_list.append({
-            "date": date_str,
-            "avg_length": round(avg_length, 1)
-        })
+    # Calculer la moyenne journalière
+    trend = []
+    for day in sorted(lengths_by_day):
+        avg_length = sum(lengths_by_day[day]) / len(lengths_by_day[day])
+        trend.append({"date": str(day), "avg_length": round(avg_length, 2)})
 
-    return trend_list
+    return trend
 
 
