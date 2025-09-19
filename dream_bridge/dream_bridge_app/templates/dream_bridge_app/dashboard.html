@@ -1,9 +1,6 @@
 {% extends "dream_bridge_app/base.html" %}
-
 {% block title %}Dashboard des rêves{% endblock %}
-
 {% block content %}
-
 <div class="container my-5">
   <!-- Sélecteur de période -->
   <div class="mb-4 d-flex flex-wrap gap-2 justify-content-center">
@@ -14,6 +11,7 @@
   </div>
 </div>
 
+<!-- Filtre par émotion -->
 <div class="container my-4 d-flex justify-content-center">
   <form method="get" class="card card-dream p-3 shadow-lg d-flex flex-row align-items-center gap-3" style="max-width:500px; margin:auto; background:rgba(30,30,60,0.95); border-radius:18px;">
     <input type="hidden" name="period" value="{{ period }}">
@@ -31,160 +29,105 @@
 <div class="row g-4 mb-4 justify-content-center">
   <div class="col-md-5 d-flex justify-content-center">
     <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
-      <h5>Total de rêves</h5>
+      <h5>Total de vos rêves</h5>
       <p class="fs-3 fw-bold">{{ total_dreams }}</p>
     </div>
   </div>
   <div class="col-md-5 d-flex justify-content-center">
     <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
-      <h5>Fréquence des jours avec rêve</h5>
-      <p class="fs-3 fw-bold">{{ dream_frequency|floatformat:2 }}</p>
+      <h5>Taux de jours où vous rêvez </h5>
+      <p class="fs-3 fw-bold">{{ dream_frequency|floatformat:2 }}%</p>
     </div>
   </div>
 </div>
 
 <!-- Graphiques -->
 <div class="row g-4 justify-content-center">
+  <!-- Répartition des émotions -->
   <div class="col-md-5 d-flex justify-content-center">
     <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
-      <h4 class="mb-3 text-center">Répartition des émotions</h4>
+      <h4 class="mb-3 text-center">Répartition de vos émotions</h4>
       <canvas id="emotionChart" height="300"></canvas>
     </div>
   </div>
+
+  <!-- Longueur moyenne des récits -->
   <div class="col-md-5 d-flex justify-content-center">
     <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
-      <h4 class="mb-3 text-center">Tendance des émotions</h4>
-      <div id="trendEmpty" style="display:none; text-align:center; color:#fff; font-size:1.1rem; margin-top:40px;">Aucune donnée pour la période sélectionnée.</div>
-      <canvas id="trendChart" height="300"></canvas>
+      <h4 class="mb-3 text-center"> Volume moyen de vos récits</h4>
+      <canvas id="transcriptionChart" height="300"></canvas>
+      <div id="transcriptionEmpty" style="display:none; text-align:center; color:#fff; font-size:1.1rem; margin-top:40px;">
+        Aucune donnée pour la période sélectionnée.
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-  // ==== Répartition des émotions ====
-  const emotionData = JSON.parse('{{ emotion_distribution|escapejs }}');
-  const ctxEmotion = document.getElementById('emotionChart');
-  const chartColors = [
-    '#FF6384', // rose
-    '#36A2EB', // bleu
-    '#FFCE56', // jaune
-    '#8AFF33', // vert
-    '#FF33EC', // violet
-    '#33FFF9'  // turquoise
-  ];
+const chartColors = ['#FF6384', '#36A2EB', '#FFCE56', '#8AFF33', '#FF33EC', '#33FFF9'];
 
-  const emotionChart = new Chart(ctxEmotion.getContext('2d'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(emotionData),
-      datasets: [{
-        data: Object.values(emotionData), // plus de % ni *100
-        backgroundColor: chartColors,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            color: '#fff',
-            font: { size: 15, family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', weight: 'bold' },
-            usePointStyle: false,
-            boxWidth: 18,
-            padding: 18
-          },
-          onClick: null,
-          onHover: null
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              let label = context.label || '';
-              let value = context.parsed || 0;
-              return `${label}: ${value}`; // plus de %
-            }
-          }
-        }
-      }
+// ==== Répartition des émotions ====
+const emotionData = JSON.parse('{{ emotion_distribution|escapejs }}');
+new Chart(document.getElementById('emotionChart').getContext('2d'), {
+  type: 'pie',
+  data: {
+    labels: Object.keys(emotionData),
+    datasets: [{ data: Object.values(emotionData), backgroundColor: chartColors }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#fff', font: { size: 15, weight:'bold' } } },
+      tooltip: { callbacks: { label: ctx => `${ctx.label}: ${(ctx.parsed*100).toFixed(2)}%` } }
     }
-  });
-
-  // ==== Tendance émotions (line/bar chart) ====
-  const trendData = JSON.parse('{{ emotion_trend|escapejs }}');
-  const ctxTrend = document.getElementById('trendChart').getContext('2d');
-  let trendEmpty = document.getElementById('trendEmpty');
-
-  let dates = [];
-  let datasets = [];
-  if (trendData && trendData.length > 0) {
-    dates = trendData.map(item => item.date);
-    const allEmotions = new Set();
-    trendData.forEach(item => {
-      Object.keys(item).forEach(key => {
-        if(key !== 'date') allEmotions.add(key);
-      });
-    });
-    datasets = Array.from(allEmotions).map((emo, index) => {
-      return {
-        label: emo,
-        data: trendData.map(item => item[emo] || 0), // pas de *100
-        borderColor: `hsl(${index*60 % 360}, 70%, 50%)`,
-        fill: false,
-      };
-    });
-    trendEmpty.style.display = 'none';
-  } else {
-    trendEmpty.style.display = 'block';
   }
+});
 
-  // Applique les couleurs
-  datasets.forEach((ds, idx) => {
-    ds.backgroundColor = chartColors[idx % chartColors.length];
-    ds.borderColor = chartColors[idx % chartColors.length];
-    // ds.data = ds.data.map(v => (Number(v)*100).toFixed(2)); <-- supprimé
-  });
+// ==== Longueur moyenne des récits ====
+const transcriptionData = JSON.parse('{{ transcription_trend|escapejs }}');
+const ctxTranscription = document.getElementById('transcriptionChart').getContext('2d');
+const transcriptionEmpty = document.getElementById('transcriptionEmpty');
 
-  const trendChart = new Chart(ctxTrend, {
-    type: 'bar',
-    data: {
-      labels: dates,
-      datasets: datasets
+let labels = [];
+let data = [];
+
+if (transcriptionData && transcriptionData.length > 0) {
+  labels = transcriptionData.map(item => item.date);
+  data = transcriptionData.map(item => item.avg_length || 0);
+  transcriptionEmpty.style.display = 'none';
+} else {
+  transcriptionEmpty.style.display = 'block';
+}
+
+new Chart(ctxTranscription, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Nombre moyen de caractères',
+      data: data,
+      borderColor: '#36A2EB',
+      backgroundColor: 'rgba(54,162,235,0.2)',
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {display:false},
+    //   { labels: { color: '#fff', font: { size: 14, weight: 'bold' } } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} caractères` } }
     },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            color: '#fff',
-            font: { size: 14, family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', weight: 'bold' },
-            usePointStyle: false,
-            boxWidth: 18,
-            padding: 18
-          },
-          onClick: null,
-          onHover: null
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              let value = context.parsed.y || 0;
-              return `${label}: ${value}`; // plus de %
-            }
-          }
-        }
-      },
-      scales: {
-        x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-        y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
-      }
+    scales: {
+      x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+      y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
     }
-  });
+  }
+});
 </script>
-
 <div style="height:40px;"></div>
-
 {% endblock %}

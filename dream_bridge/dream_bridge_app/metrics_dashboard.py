@@ -39,16 +39,13 @@ def total_dreams(user, period="all", emotion=None):
 
 
 # --- Fréquence des jours avec rêve ---
-# --- Fréquence des jours avec rêve corrigée ---
 def dream_frequency(user, period="all", emotion=None):
     qs = get_dreams_in_period(user, period, emotion=emotion)
     if not qs.exists():
         return 0.0
 
-    # Extraire les dates uniques des rêves
     dream_days = set(qs.values_list("created_at__date", flat=True))
 
-    # Calcul du nombre total de jours selon la période
     today = timezone.localdate()
     if period == "3d":
         total_days = 3
@@ -57,15 +54,12 @@ def dream_frequency(user, period="all", emotion=None):
     elif period in ("1m", "30d"):
         total_days = 30
     else:
-        # Pour 'all' ou autre, prendre la plage entre le plus ancien et le plus récent rêve
         earliest = qs.earliest('created_at').created_at.date()
         latest = qs.latest('created_at').created_at.date()
         total_days = max(1, (latest - earliest).days + 1)
 
-    # Fréquence des jours avec rêve, limitée à 100 %
     frequency = len(dream_days) / total_days * 100
     return round(min(frequency, 100.0), 2)
-
 
 
 # --- Répartition des émotions ---
@@ -82,29 +76,31 @@ def emotion_distribution(user, period="all", emotion=None):
     return {k: round(v / total, 3) for k, v in counts.items()}
 
 
-# --- Tendance des émotions dans le temps ---
-def emotion_trend(user, period="all", emotion=None):
+# --- Longueur moyenne des transcriptions ---
+# --- Longueur moyenne des récits ---
+def transcription_trend(user, period="all", emotion=None):
     qs = get_dreams_in_period(user, period, emotion=emotion)
     if not qs.exists():
-        return {}
+        return []
 
+    # Groupe les rêves par date
     trend = {}
-    today = timezone.localdate()
+    for dream in qs:
+        date_str = dream.created_at.date().isoformat()
+        length = len(dream.transcription or "")
+        if date_str not in trend:
+            trend[date_str] = []
+        trend[date_str].append(length)
 
-    if period == "3d":
-        days_range = [today - timedelta(days=2), today - timedelta(days=1), today]
-    elif period == "7d":
-        days_range = [today - timedelta(days=i) for i in reversed(range(7))]
-    elif period in ("1m", "30d"):
-        days_range = [today - timedelta(days=i) for i in reversed(range(30))]
-    else:
-        days_range = sorted(qs.values_list("created_at__date", flat=True).distinct())
+    # Calcul de la moyenne par date
+    trend_list = []
+    for date_str, lengths in sorted(trend.items()):
+        avg_length = sum(lengths) / len(lengths)
+        trend_list.append({
+            "date": date_str,
+            "avg_length": round(avg_length, 1)
+        })
 
-    for date in days_range:
-        dreams_on_day = qs.filter(created_at__date=date)
-        counts = Counter(d.emotion for d in dreams_on_day if d.emotion)
-        total = sum(counts.values())
-        date_key = date.isoformat() if hasattr(date, "isoformat") else str(date)
-        trend[date_key] = {k: round(v / total, 3) for k, v in counts.items()} if total > 0 else {}
+    return trend_list
 
-    return trend
+
