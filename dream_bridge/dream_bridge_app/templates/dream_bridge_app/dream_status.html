@@ -1,3 +1,4 @@
+
 {% extends "dream_bridge_app/base.html" %}
 {% load static %}
 {% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
@@ -7,56 +8,80 @@
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
 
-      <!-- Carte principale -->
-      <div class="card card-dream shadow-lg p-4 text-center">
-        <div class="fs-2 mb-3">✨</div>
-        <h3 class="mb-2">Votre Rêve Visualisé</h3>
-        <p class="text-white-50">Interprétation artistique et message adapté à votre rêve.</p>
-
-        <!-- Image générée -->
-        {% if dream.generated_image %}
-        <div class="mt-3">
-          <img src="{{ dream.generated_image.url }}" class="img-fluid rounded shadow" alt="Image générée du rêve">
+      <!-- Écran de chargement onirique -->
+      <div id="loading-screen" class="card card-dream shadow-lg p-4 text-center" data-check-url="{{ check_url }}">
+        <div class="mystic-loader mb-3">
+          <div class="moon"></div>
+          <div class="star"></div>
+          <div class="star twinkle"></div>
+          <div class="star"></div>
         </div>
-        {% endif %}
-
-        <!-- Message personnalisé -->
+        <h3 class="waiting-title mb-2">Les astres interprètent votre rêve…</h3>
+        <p id="loading-message" class="mb-3">
+          Nos algorithmes percent le mystère de votre subconscient…
+        </p>
         <div class="card card-dream mt-4 p-3 text-start">
           <div class="d-flex align-items-center mb-2">
-            <div class="me-2">🔮</div>
-            <h5 class="m-0">Message personnalisé</h5>
+            <div class="me-2">🌟</div>
+            <h5 class="m-0">Message du Jour</h5>
           </div>
-          <p class="mb-0" style="opacity:.95; white-space:pre-line;">
-            {{ dream.personal_phrase|default:daily_message }}
-          </p>
+          <p class="mb-0" style="opacity:.95; white-space:pre-line;">{{ daily_message }}</p>
         </div>
+      </div>
 
-        <!-- Infos supplémentaires -->
-        <div class="row g-3 mt-4">
-          <div class="col-md-6">
-            <div class="card card-dream p-3">
-              <div class="text-uppercase small opacity-75">Émotion dominante</div>
-              <div class="fw-semibold mt-1">{{ emotion_label }}</div>
-            </div>
+      <!-- Contenu du rêve, caché au départ -->
+      <div id="dream-content" style="display:none;">
+        <div class="card card-dream shadow-lg p-4 text-center">
+          <div class="fs-2 mb-3">✨</div>
+          <h3 class="mb-2">Votre Rêve Visualisé</h3>
+          <p class="text-white-50">Interprétation artistique et message adapté à votre rêve.</p>
+
+          <!-- Image générée -->
+          {% if dream.generated_image %}
+          <div class="mt-3">
+            <img src="{{ dream.generated_image.url }}" class="img-fluid rounded shadow" alt="Image générée du rêve">
           </div>
-          <div class="col-md-6">
-            <div class="card card-dream p-3">
-              <div class="text-uppercase small opacity-75">Date</div>
-              <div class="fw-semibold mt-1">
-                {{ created_at_local|date:"d/m/Y \\à H\\hi" }}
+          {% endif %}
+
+          <!-- Message personnalisé -->
+          <div class="card card-dream mt-4 p-3 text-start">
+            <div class="d-flex align-items-center mb-2">
+              <div class="me-2">🔮</div>
+              <h5 class="m-0">Message personnalisé</h5>
+            </div>
+            <p class="mb-0" style="opacity:.95; white-space:pre-line;">
+              {{ dream.personal_phrase|default:daily_message }}
+            </p>
+          </div>
+
+          <!-- Infos supplémentaires -->
+          <div class="row g-3 mt-4">
+            <div class="col-md-6">
+              <div class="card card-dream p-3">
+                <div class="text-uppercase small opacity-75">Émotion dominante</div>
+                <div class="fw-semibold mt-1">{{ emotion_label }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card card-dream p-3">
+                <div class="text-uppercase small opacity-75">Date</div>
+                <div class="fw-semibold mt-1">
+                  {{ created_at_local|date:"d/m/Y \\à H\\hi" }}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Boutons -->
-        <div class="d-flex gap-2 mt-4 justify-content-center">
-          <a href="{% url 'dream_bridge_app:galerie' %}" class="btn btn-outline-light">📚 Retour à la bibliothèque</a>
-          <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">🎙️ Raconter un autre rêve</a>
+          <!-- Boutons -->
+          <div class="d-flex gap-2 mt-4 justify-content-center">
+            <a href="{% url 'dream_bridge_app:galerie' %}" class="btn btn-outline-light">📚 Retour à la bibliothèque</a>
+            <a href="{% url 'dream_bridge_app:narrate' %}" class="btn btn-outline-light">🎙️ Raconter un autre rêve</a>
+          </div>
         </div>
       </div>
 
     </div>
   </div>
 </div>
+<script src="{% static 'dream_bridge_app/waiting_screen.js' %}"></script>
 {% endblock %}

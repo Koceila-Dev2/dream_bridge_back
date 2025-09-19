@@ -1,5 +1,3 @@
-# dream_bridge/dream_bridge_app/tests.py
-
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -8,6 +6,9 @@ from unittest.mock import patch
 from datetime import timedelta
 from unittest.mock import patch, MagicMock
 from django.utils import timezone
+
+
+
 
 from .services import *
 
@@ -254,3 +255,84 @@ class SecurityTest(TestCase):
         # le rêve pour l'utilisateur actuellement connecté.
         self.assertRedirects(response, reverse('login'))
 
+
+# ---
+# Catégorie 3 : Tests Unitaires sur le modèle Dream
+# ---
+class DreamModelTest(TestCase):
+    """
+    Teste les méthodes personnalisées du modèle Dream.
+    Permet de s'assurer que la logique métier du modèle fonctionne comme attendu.
+    """
+    def setUp(self):
+        self.user = User.objects.create_user(username='dreamer', password='password')
+
+    def test_str_method(self):
+        """
+        Vérifie que la méthode __str__ retourne le bon format (id et statut).
+        C'est utile pour l'affichage dans l'admin Django et le debug.
+        """
+        dream = Dream.objects.create(user=self.user, status='COMPLETED', emotion='joie')
+        self.assertIn(str(dream.id), str(dream))
+        self.assertIn('COMPLETED', str(dream))
+
+    def test_get_emotion_display(self):
+        """
+        Vérifie que get_emotion_display retourne le label correct pour l'émotion.
+        Permet d'afficher le bon texte dans les templates.
+        """
+        dream = Dream.objects.create(user=self.user, status='COMPLETED', emotion='joie')
+        self.assertEqual(dream.get_emotion_display(), 'Joie')
+
+
+# ---
+# Catégorie 4 : Tests Unitaires sur les services
+# ---
+class ServicesTest(TestCase):
+    """
+    Teste les fonctions utilitaires du module services.
+    Ici, on vérifie la détection d'émotion sur un texte simple.
+    """
+    def test_get_emotion_from_text(self):
+        """
+        Teste la fonction get_emotion_from_text sur un texte positif.
+        On s'attend à ce que l'émotion retournée soit dans la liste des émotions connues.
+        """
+        text = "Je suis très heureux aujourd'hui !"
+        emotion = get_emotion_from_text(text)
+        self.assertIn(emotion, ['joie', 'tristesse', 'colère', 'peur', 'surprise', 'dégoût'])
+
+
+# ---
+# Catégorie 5 : Tests Unitaires sur les tâches Celery
+# ---
+from unittest.mock import patch
+from .tasks import *
+
+class TasksTest(TestCase):
+    """
+    Teste la tâche Celery process_dream_audio_task.
+    On vérifie que la fonction d'orchestration est appelée et que le fichier temporaire est supprimé.
+    """
+    @patch('dream_bridge_app.tasks.orchestrate_dream_generation')
+    @patch('os.remove')
+    def test_process_dream_audio_task_deletes_temp_file(self, mock_remove, mock_orchestrate):
+        """
+        Vérifie que le fichier temporaire est supprimé après traitement.
+        On mocke orchestrate_dream_generation pour ne pas exécuter la vraie logique.
+        """
+        temp_path = '/tmp/fake_audio.wav'
+        process_dream_audio_task('fake_id', temp_path)
+        mock_orchestrate.assert_called_once_with('fake_id', temp_path)
+        mock_remove.assert_called_once_with(temp_path)
+# dream_bridge/dream_bridge_app/tests.py
+
+# class UserProfileModelTest(TestCase):
+#     """
+#     Teste le modèle UserProfile pour s'assurer que les propriétés fonctionnent correctement.
+#     """
+#     def test_zodiac_sign_text_property(self):
+#         """Vérifie que zodiac_sign_text retourne le bon texte."""
+#         user = User.objects.create_user(username='astro', password='password')
+#         profile = UserProfile.objects.create(user=user, zodiac_sign='Verseau')
+#         self.assertEqual(profile.zodiac_sign_text, 'Verseau')

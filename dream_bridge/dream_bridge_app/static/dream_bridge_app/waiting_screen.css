@@ -16,7 +16,6 @@ body {
   height: 100vh;
   pointer-events: none;
   z-index: 0;
-  background: transparent url('/static/dream_bridge_app/stars_parallax.png') repeat;
   animation: moveStars 100s linear infinite;
 }
 

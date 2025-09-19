@@ -112,11 +112,14 @@ def dream_status_view(request, dream_id):
     except Exception:
         emotion_label = dream.emotion or "—"
 
+    check_url = reverse('dream_bridge_app:check-dream-status-api', kwargs={'dream_id': dream.id})
+    
     return render(request, 'dream_bridge_app/dream_status.html', {
         'dream': dream,
         'daily_message': daily_message,
         'created_at_local': created_at_local,
         'emotion_label': emotion_label,
+        'check_url': check_url,
     })
 
 
