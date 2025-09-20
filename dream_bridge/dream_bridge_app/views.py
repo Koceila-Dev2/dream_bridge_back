@@ -132,29 +132,28 @@ def report(request):
     period = request.GET.get("period", "7d")
     selected_emotion = request.GET.get("emotion", "all")
 
+    # Rêves filtrés
     dreams = get_dreams_in_period(user, period, emotion=selected_emotion)
 
     td = dreams.count()
     freq = dream_frequency(user, period, emotion=selected_emotion)
     ed = emotion_distribution(user, period, emotion=selected_emotion)
-    # Convertit le dict {date: {emo: val}} en list[dict] [{date:..., emo1:..., emo2:...}]
-    trend_raw = emotion_trend(user, period, emotion=selected_emotion)
-    trend_list = []
-    for date, emos in trend_raw.items():
-        entry = {"date": date}
-        entry.update(emos)
-        trend_list.append(entry)
+
+    # --- Nouvelle métrique : longueur moyenne des transcriptions ---
+    transcription_data = get_transcription_trend(user, period, emotion=selected_emotion)
 
     context = {
         "total_dreams": td,
         "dream_frequency": freq,
         "emotion_distribution": json.dumps(ed),
-        "emotion_trend": json.dumps(trend_list),
+        "transcription_trend": json.dumps(transcription_data),
         "period": period,
         "emotions": list(emotions_disponible(user)),
         "selected_emotion": selected_emotion,
     }
+
     return render(request, "dream_bridge_app/dashboard.html", context)
+
 
 
 @login_required
