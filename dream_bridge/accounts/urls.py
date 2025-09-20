@@ -14,7 +14,7 @@ urlpatterns = [
     # Inscription
     path("signup/",   SignUpView.as_view(), name="signup"),
 
-    # Connexion (UNE SEULE ROUTE)
+   
     path(
         "login/",
         auth_views.LoginView.as_view(

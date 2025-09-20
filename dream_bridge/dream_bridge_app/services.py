@@ -1,6 +1,7 @@
 import os
 import pickle
 import json
+import time
 import requests
 
 from django.conf import settings
@@ -200,6 +201,7 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
         if USE_SIMULATION:
             sim_path = os.path.join(settings.BASE_DIR, "dream_bridge_app", "simulation.pkl")
+            time.sleep(7)
             with open(sim_path, "rb") as f:
                 simulation_data = pickle.load(f)
 
