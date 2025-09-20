@@ -267,8 +267,10 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
         # Génération auto du message personnalisé
         try:
-            generate_personal_message_for_dream(str(dream.id), force=True)
-
+            # Récupère la phrase générée
+            msg = generate_personal_message_for_dream(str(dream.id), force=True)
+            # Elle est déjà assignée dans la fonction, mais si tu veux être sûr :
+            dream.personal_phrase = msg
             dream.personal_phrase_date = timezone.localdate()
             dream.save(update_fields=["personal_phrase", "personal_phrase_date", "updated_at"])
 

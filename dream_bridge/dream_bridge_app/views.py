@@ -154,11 +154,11 @@ def dream_status_view(request, dream_id):
 
     return render(
         request,
-        'dream_bridge_app/dream_detail.html',
+        'dream_bridge_app/dream_status.html',
         {
             'dream': dream,
             'daily_message': daily_message,
-            'created_at_local': created_at_local.strftime('%d/%m/%Y à %H:%M'),
+            'created_at_local': created_at_local,
             'emotion_label': emotion_label,
         }
     )
