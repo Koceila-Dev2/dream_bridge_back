@@ -1,14 +1,13 @@
-<!-- dream_status.html -->
 {% extends "dream_bridge_app/base.html" %}
 {% load static %}
-{% block title %}Statut de votre rêve - Dream Bridge{% endblock %}
+
+{% block title %}Interprétation en cours... - Dream Bridge{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-white">
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
 
-      <!-- Loader toujours affiché au départ -->
       <div id="loading-screen" class="card card-dream shadow-lg p-4 text-center" data-check-url="{{ check_url }}">
         <div class="mystic-loader mb-3">
           <div class="moon"></div>
@@ -29,22 +28,11 @@
         </div>
       </div>
 
-      <!-- Contenu du rêve, toujours caché au départ -->
-      <div id="dream-content" style="display:none;">
-        <h4 class="mb-3">Détails du Rêve</h4>
-        <p><strong>Émotion:</strong> {{ emotion_label }}</p>
-        <p><strong>Date de création:</strong> {{ created_at_local }}</p>
-        <div class="card card-dream mt-4 p-3 text-start">
-          <div class="d-flex align-items-center mb-2">
-            <div class="me-2">🌙</div>
-            <h5 class="m-0">Contenu du Rêve</h5>
-          </div>
-          <p class="mb-0" style="opacity:.95; white-space:pre-line;">{{ dream.content }}</p>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
 <script src="{% static 'dream_bridge_app/waiting_screen.js' %}"></script>
 {% endblock %}

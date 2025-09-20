@@ -1,212 +1,176 @@
-/* Fond étoilé animé en parallax */
+/* static/css/home.css */
+
+/* --- Importation de la typographie --- */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Poppins:wght@300;400;600&display=swap');
+
+/* --- Variables de couleur --- */
+:root {
+    --background-dark: #070212; /* Encore plus sombre pour la profondeur */
+    --primary-glow: #a955c3;
+    --secondary-glow: #f39c12;
+    --text-primary: #f0e6ff;
+    --text-secondary: #a09cb0;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Fond "Aurora" animé --- */
 body {
-  background: radial-gradient(ellipse at bottom, #232a41 0%, #0f1331 100%);
-  overflow-x: hidden;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #e5d7ff;
-  min-height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2, #a955c3, #f39c12);
+    background-size: 400% 400%;
+    background-color: var(--background-dark);
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-primary);
+    animation: animate-aurora 20s ease infinite;
 }
 
-.parallax-bg {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  animation: moveStars 100s linear infinite;
+@keyframes animate-aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-@keyframes moveStars {
-  100% {
-    background-position: 1000px 2000px;
-  }
+/* --- Typographie Générale --- */
+h1, h2, h3, h4, h5 {
+    font-family: 'Lora', serif;
+    color: white;
+    font-weight: 600;
 }
 
-/* Glassmorphism : conteneur cartes */
-.glass-card {
-  position: relative;
-  max-width: 600px;
-  margin: 50px auto;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2rem;
-  box-shadow: 0 8px 36px rgba(10, 16, 39, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  padding: 2rem 2.5rem;
-  z-index: 1;
+/* --- Section Héros Immersive --- */
+.hero-section {
+    padding: 8rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Loader mystique */
-.mystic-loader {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding-bottom: 24px;
+.hero-content {
+    position: relative;
+    z-index: 2;
 }
 
-.moon {
-  width: 48px;
-  height: 48px;
-  background: radial-gradient(circle, #fffafc 60%, #f4d8ef 100%);
-  border-radius: 50%;
-  box-shadow: 0 0 12px #ffd5f3cc, 0 0 40px #b2affa44;
-  animation: moonFloat 2.5s ease-in-out infinite alternate;
+.hero-section h1 {
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    text-shadow: 0 0 20px var(--primary-glow);
+    margin-bottom: 1rem;
 }
 
-@keyframes moonFloat {
-  to {
-    transform: translateY(-10px) scale(1.05);
-  }
+.hero-section .lead {
+    font-size: 1.25rem;
+    max-width: 600px;
+    margin: 0 auto 2.5rem auto;
+    color: var(--text-secondary);
 }
 
-.star, .star.twinkle {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ffeedb;
-  margin: 0 2px;
-  box-shadow: 0 0 10px #ffeec8ff;
+/* --- Le Bento Grid --- */
+.bento-grid-section {
+    padding: 4rem 0;
 }
 
-.star.twinkle {
-  animation: twinkleStar 1.1s infinite alternate;
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(200px, auto);
+    gap: 1.5rem;
 }
 
-@keyframes twinkleStar {
-  100% {
-    opacity: 0.6;
-    transform: scale(1.3);
-  }
+.bento-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem; /* Bords plus arrondis */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 1.5rem 2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    position: relative;
 }
 
-/* Titres et textes du loader */
-.waiting-title {
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 0.04em;
-  margin: 0.8rem 0 0.5rem 0;
-  color: #e5d7ff;
+.bento-item:hover {
+    transform: scale(1.03);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 30px 0 var(--primary-glow);
 }
 
-#loading-message {
-  font-size: 1.15rem;
-  margin-bottom: 16px;
-  text-align: center;
-  color: #b6c6ff;
-  min-height: 48px;
-  transition: opacity 0.5s ease-in-out;
+/* Tailles et positions des éléments de la grille */
+.bento-item.large-visual {
+    grid-column: span 2;
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Texte en bas */
 }
 
-/* Styles pour le message du jour amélioré */
-.astro-message-container {
-  background: linear-gradient(135deg, #3a2a61 40%, #6e52a3 100%);
-  border-radius: 1.2rem;
-  padding: 1.6rem 2.4rem;
-  box-shadow: 0 8px 20px rgba(110, 82, 163, 0.4);
-  color: #fff7e6;
-  margin: 2rem auto 3rem;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Georgia', serif;
-  max-width: 520px;
-  animation: slideFadeIn 0.9s ease forwards;
+.bento-item.feature {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
 }
 
-@keyframes slideFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.bento-item .bento-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-glow);
 }
 
-.astro-message-icon {
-  position: absolute;
-  top: -12px;
-  left: -14px;
-  font-size: 4.3rem;
-  color: #f5c18c;
-  filter: drop-shadow(0 0 6px #ffd39a99);
-  z-index: 1;
-  animation: pulseGlow 2.5s infinite alternate;
-  user-select: none;
-  pointer-events: none;
+.bento-item h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
 }
 
-@keyframes pulseGlow {
-  0% {
-    text-shadow: 0 0 10px #f5c18c55, 0 0 20px #f5c18c33;
-  }
-  100% {
-    text-shadow: 0 0 22px #ffd39a, 0 0 35px #fdf6cb77;
-  }
-}
-
-.astro-heading {
-  position: relative;
-  font-weight: 700;
-  font-size: 2.2rem;
-  padding-bottom: 0.4rem;
-  text-align: center;
-  text-shadow: 0 2px 8px #462a9599, 0 0 10px #ae8de9cc;
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-  z-index: 2;
-}
-
-.astro-message {
-  font-style: italic;
-  font-weight: 400;
-  text-align: center;
-  font-size: 1.19rem;
-  line-height: 1.62;
-  z-index: 2;
-  position: relative;
-}
-
-/* Styler le contenu du rêve */
-.process-icon {
-  font-size: 3rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.process-title {
-  font-weight: 600;
-  font-size: 1.8rem;
-  margin-bottom: 0.3rem;
-  text-align: center;
-  color: #ffeefa;
-}
-
-.process-description {
-  font-size: 1.1rem;
-  text-align: center;
-  color: #d4c6f7;
-}
-
-/* Responsivité */
-@media (max-width: 768px) {
-  .glass-card {
-    margin: 30px 12px;
-    padding: 1.5rem 1.8rem;
-  }
-
-  .astro-message-container {
-    max-width: 100%;
-    margin: 1.5rem auto 2rem;
-    padding: 1.2rem 1.5rem;
+.bento-item p {
+    color: var(--text-secondary);
     font-size: 0.95rem;
-  }
+    line-height: 1.6;
+}
 
-  .astro-heading {
-    font-size: 1.8rem;
-  }
+/* Style spécifique pour la carte visuelle */
+.large-visual .visual-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: all 0.5s ease;
+    border-radius: 1.5rem;
+}
+
+.large-visual:hover .visual-background {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.large-visual .content {
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 1.5rem;
+    margin: -1.5rem -2rem; /* Pour couvrir tout le bas de la carte */
+    border-radius: 0 0 1.5rem 1.5rem;
+}
+
+/* Animations d'apparition */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Section CTA finale --- */
+.cta-section {
+    border-radius: 1.5rem;
+    background: none;
+    padding: 6rem 2rem;
+    text-align: center;
 }

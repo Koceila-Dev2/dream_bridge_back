@@ -206,10 +206,11 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             dream.transcription = simulation_data["transcription"]
             dream.image_prompt = simulation_data["image_prompt"]
             file_bytes = simulation_data["image_bytes"]
-
-            # ✔ calcule aussi l'émotion en simulation
+            dream.status = Dream.DreamStatus.PROCESSING
+            
+            print("Simulation mode: le traitement est bien en processing")
             dream.emotion = get_emotion_from_text(dream.transcription) or "neutre"
-            dream.save(update_fields=["transcription", "image_prompt", "emotion", "updated_at"])
+            dream.save(update_fields=["status", "transcription", "image_prompt", "emotion", "updated_at"])
 
         else:
             # --- Transcription (Whisper Groq)

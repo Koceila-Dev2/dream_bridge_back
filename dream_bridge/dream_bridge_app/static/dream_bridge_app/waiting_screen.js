@@ -1,63 +1,54 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const loadingScreen = document.getElementById('loading-screen');
-  const dreamContent = document.getElementById('dream-content');
+// static/dream_bridge_app/waiting_screen.js
 
-  
-  if (!loadingScreen || !dreamContent) return;
-  const checkUrl = loadingScreen.dataset.checkUrl;
-  const loadingMessage = document.getElementById('loading-message');
-  const messages = [
-    "Analyse de la sémantique…",
-    "Interprétation des symboles…",
-    "Connexion au subconscient…",
-    "Construction du pont onirique…",
-    "Coloration des émotions…",
-    "Finalisation de la vision…"
-  ];
-  let messageIndex = 0;
-  const messageInterval = setInterval(() => {
-    loadingMessage.style.opacity = 0;
-    setTimeout(() => {
-      messageIndex = (messageIndex + 1) % messages.length;
-      loadingMessage.textContent = messages[messageIndex];
-      loadingMessage.style.opacity = 1;
-    }, 500);
-  }, 4000);
-  const MIN_WAIT = 10000;
-  const startTime = Date.now();
-  function showDreamAfterDelay() {
-    const elapsed = Date.now() - startTime;
-    const remaining = MIN_WAIT - elapsed;
-    if (remaining > 0) {
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-        dreamContent.style.display = 'block';
-        clearInterval(messageInterval);
-      }, remaining);
-    } else {
-      loadingScreen.style.display = 'none';
-      dreamContent.style.display = 'block';
-      clearInterval(messageInterval);
-    }
-  }
-  function checkStatus() {
-    fetch(checkUrl, { credentials: 'same-origin' })
-      .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then(data => {
-        if (data.status === 'COMPLETED' || data.status === 'FAILED') {
-          clearInterval(pollInterval);
-          showDreamAfterDelay();
+document.addEventListener('DOMContentLoaded', () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (!loadingScreen) return;
+
+    const checkUrl = loadingScreen.dataset.checkUrl;
+    const MIN_WAIT_TIME_MS = 8000; // 8 secondes
+    const POLLING_INTERVAL_MS = 3000; // 3 secondes
+
+    const startTime = Date.now();
+    let pollingInterval;
+
+    const checkStatus = async () => {
+        try {
+            const response = await fetch(checkUrl);
+            if (!response.ok) {
+                console.error('Erreur serveur lors de la vérification du statut.');
+                clearInterval(pollingInterval); // Arrête en cas d'erreur serveur
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+                clearInterval(pollingInterval); 
+                
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = MIN_WAIT_TIME_MS - elapsedTime;
+
+                if (remainingTime > 0) {
+                    // Si moins de 8 secondes se sont écoulées, attendre le reste du temps
+                    setTimeout(() => {
+                        window.location.href = data.status_url;
+                    }, remainingTime);
+                } else {
+                    // Si 8 secondes ou plus se sont déjà écoulées, rediriger immédiatement
+                    window.location.href = data.status_url;
+                }
+            }
+            // Si PENDING ou PROCESSING, ne rien faire et laisser l'intervalle continuer
+            
+        } catch (error) {
+            console.error('Erreur de connexion lors de la vérification du statut :', error);
+            clearInterval(pollingInterval);
         }
-      })
-      .catch(err => {
-        clearInterval(pollInterval);
-        clearInterval(messageInterval);
-        loadingMessage.textContent = 'Erreur de connexion. Veuillez rafraîchir la page.';
-      });
-  }
-  const pollInterval = setInterval(checkStatus, 3000);
-  checkStatus();
+    };
+
+    // Démarrer la vérification à intervalles réguliers
+    pollingInterval = setInterval(checkStatus, POLLING_INTERVAL_MS);
+    
+    // Lancer une première vérification immédiate pour plus de réactivité
+    checkStatus(); 
 });

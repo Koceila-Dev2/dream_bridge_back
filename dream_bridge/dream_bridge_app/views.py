@@ -88,38 +88,30 @@ def library(request):
 
 
 @login_required
+@login_required
 def dream_status_view(request, dream_id):
-    """
-    Page d’un rêve : génère/affiche le message personnalisé.
-    - Montre l’émotion dominante et la date locale.
-    """
     dream = get_object_or_404(Dream, id=dream_id, user=request.user)
 
-    if dream.status == Dream.DreamStatus.COMPLETED:
-        try:
-            generate_personal_message_for_dream(str(dream.id), force=True)
-            dream.refresh_from_db(fields=["personal_phrase", "personal_phrase_date", "phrase", "phrase_date", "emotion"])
-        except Exception:
-            pass
+    # Si le rêve n'est pas terminé, afficher l'écran de chargement
+    if dream.status in [Dream.DreamStatus.PENDING, Dream.DreamStatus.PROCESSING]:
+        daily_message = get_daily_message(request.user.id) # Message générique pour l'attente
+        check_url = reverse('dream_bridge_app:check-dream-status-api', kwargs={'dream_id': dream.id})
+        return render(request, 'dream_bridge_app/waiting_screen.html', {
+            'daily_message': daily_message,
+            'check_url': check_url,
+        })
 
-    # Priorité d’affichage
-    daily_message = dream.personal_phrase or dream.phrase or get_daily_message(request.user.id)
-
-    # Données d’affichage
+    # Si le rêve est terminé ou a échoué, afficher les détails
+    # Ceci est la destination finale après le chargement ou pour un accès direct depuis la galerie
+    daily_message = dream.personal_phrase or dream.phrase
     created_at_local = timezone.localtime(dream.created_at)
-    try:
-        emotion_label = dream.get_emotion_display()
-    except Exception:
-        emotion_label = dream.emotion or "—"
+    emotion_label = dream.get_emotion_display() if hasattr(dream, 'get_emotion_display') else dream.emotion or "—"
 
-    check_url = reverse('dream_bridge_app:check-dream-status-api', kwargs={'dream_id': dream.id})
-    
-    return render(request, 'dream_bridge_app/dream_status.html', {
+    return render(request, 'dream_bridge_app/dream_detail.html', {
         'dream': dream,
         'daily_message': daily_message,
-        'created_at_local': created_at_local,
+        'created_at_local': created_at_local.strftime('%d/%m/%Y à %H:%M'),
         'emotion_label': emotion_label,
-        'check_url': check_url,
     })
 
 
@@ -128,13 +120,11 @@ def check_dream_status_api(request, dream_id):
     """Retourne le statut d'un rêve au format JSON."""
     try:
         dream = Dream.objects.get(id=dream_id, user=request.user)
-        if dream.status in ('COMPLETED', 'FAILED'):
-            status_url = reverse('dream_bridge_app:dream-status', kwargs={'dream_id': dream.id})
-            return JsonResponse({'status': dream.status, 'status_url': status_url})
-        return JsonResponse({'status': dream.status})
+        # L'URL de redirection est maintenant toujours la même
+        status_url = reverse('dream_bridge_app:dream-status', kwargs={'dream_id': dream.id})
+        return JsonResponse({'status': dream.status, 'status_url': status_url})
     except Dream.DoesNotExist:
         return JsonResponse({'status': 'NOT_FOUND'}, status=404)
-
 
 @login_required
 def report(request):

@@ -1,33 +1,87 @@
 {% extends "dream_bridge_app/base.html" %}
 {% load static %}
 
-{% block title %}Accueil - Dream Bridge{% endblock %}
+{% block title %}Dream Bridge - Transformez vos rêves en art{% endblock %}
 
-{% block content %}
-<section class="process-section depth-layer">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-8 col-md-10">
-        <div class="process-card fade-in-up">
-          <div class="process-icon">🎙️</div>
-          <h3 class="process-title">Racontez votre rêve</h3>
-          <p class="process-description" id="recorder-instructions">
-            Cliquez sur "Démarrer" pour commencer l'enregistrement de votre récit.
-          </p>
-
-          <div id="recorder-ui" class="mt-4" data-upload-url="{% url 'dream_bridge_app:home' %}">
-            {% csrf_token %}
-            <button id="startButton" class="btn btn-light">Démarrer l'enregistrement</button>
-            <button id="stopButton" class="btn btn-danger" disabled>Arrêter l'enregistrement</button>
-          </div>
-          <div id="status-display" class="mt-3" style="min-height: 24px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
-{% block scripts %}
-<script src="{% static 'dream_bridge_app/js/recorder.js' %}" defer></script>
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <h1 class="fade-in-up">Transformez Vos Rêves en Œuvres d'Art Uniques</h1>
+        <p class="lead fade-in-up" style="animation-delay: 0.2s;">
+            Dream Bridge est le pont entre votre subconscient et votre conscience. Racontez simplement votre rêve avec votre voix, et laissez notre intelligence artificielle le métamorphoser en une image poétique et un message personnalisé.
+        </p>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-dream btn-lg shadow-lg fade-in-up" style="animation-delay: 0.4s;">Commencer l'Aventure</a>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title">Un Processus Simple et Magique</h2>
+        <div class="row text-center gy-5">
+            <div class="col-md-3 step-item">
+                <div class="step-icon-wrapper">🎙️</div>
+                <h5>1. Racontez</h5>
+                <p>Enregistrez le récit de votre rêve avec votre voix. Pas besoin d'écrire, laissez simplement vos pensées fuser.</p>
+            </div>
+            <div class="col-md-3 step-item">
+                <div class="step-icon-wrapper">✨</div>
+                <h5>2. Analysez</h5>
+                <p>Notre IA transcrit vos paroles et analyse les émotions et les thèmes clés de votre subconscient.</p>
+            </div>
+            <div class="col-md-3 step-item">
+                <div class="step-icon-wrapper">🎨</div>
+                <h5>3. Visualisez</h5>
+                <p>Recevez une image unique et magnifique, générée spécifiquement à partir de l'essence de votre récit.</p>
+            </div>
+            <div class="col-md-3 step-item">
+                <div class="step-icon-wrapper">📚</div>
+                <h5>4. Explorez</h5>
+                <p>Conservez vos rêves dans une bibliothèque personnelle et suivez l'évolution de vos nuits et de vos émotions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title">Plus qu'une simple interprétation</h2>
+        <div class="row justify-content-center g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4>Galerie d'Art Personnelle</h4>
+                    <p>Chaque rêve génère une œuvre d'art qui vous est propre. Construisez au fil du temps une collection visuelle de votre monde intérieur, une galerie unique qui n'appartient qu'à vous.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4>Tableau de Bord Émotionnel</h4>
+                    <p>Grâce à l'analyse des sentiments, suivez les émotions dominantes de vos rêves. Découvrez des tendances et comprenez mieux les messages que votre esprit essaie de vous transmettre.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4>Messages des Astres</h4>
+                    <p>Recevez des interprétations et des messages personnalisés, inspirés des thèmes de votre rêve et connectés à une sagesse astrologique, pour vous guider durant votre journée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="cta-section">
+            <h2 class="section-title mb-4">Prêt à explorer votre monde intérieur ?</h2>
+            <p class="lead" style="font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                L'inscription est simple et gratuite. Rejoignez notre communauté d'explorateurs de rêves dès aujourd'hui.
+            </p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-dream btn-lg shadow-lg me-2 mt-3">Je m'inscris gratuitement</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg mt-3">J'ai déjà un compte</a>
+        </div>
+    </div>
+</section>
 {% endblock %}
