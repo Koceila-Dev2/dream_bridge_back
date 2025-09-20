@@ -38,7 +38,7 @@ class UserProfile(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Profil de {self.user.username}"
+        return f"Profil de {self.user.username} ({self.zodiac_sign})"
 
     # --- Compatibilité / helpers pour les templates ---
     @property

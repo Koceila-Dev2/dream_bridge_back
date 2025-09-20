@@ -88,8 +88,8 @@ def library(request):
 
 
 @login_required
-@login_required
 def dream_status_view(request, dream_id):
+    """Affiche le statut d’un rêve et ses détails si terminé."""
     dream = get_object_or_404(Dream, id=dream_id, user=request.user)
 
     # Si le rêve n'est pas terminé, afficher l'écran de chargement
@@ -113,7 +113,6 @@ def dream_status_view(request, dream_id):
         'created_at_local': created_at_local.strftime('%d/%m/%Y à %H:%M'),
         'emotion_label': emotion_label,
     })
-
 
 @login_required
 def check_dream_status_api(request, dream_id):

@@ -13,7 +13,9 @@ def process_dream_audio_task(dream_id: str, temp_audio_path: str):
         print(f"Processing dream {dream_id} from temp file: {temp_audio_path}")
         orchestrate_dream_generation(dream_id, temp_audio_path)
     finally:
-        
-        if os.path.exists(temp_audio_path):
+        import os
+        try:
             os.remove(temp_audio_path)
             print(f"Deleted temporary file: {temp_audio_path}")
+        except FileNotFoundError:
+            pass

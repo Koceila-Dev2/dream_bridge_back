@@ -197,7 +197,7 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         dream = Dream.objects.get(id=dream_id)
         dream.save(update_fields=["status"])
 
-        USE_SIMULATION = True 
+        USE_SIMULATION = False 
 
         if USE_SIMULATION:
             sim_path = os.path.join(settings.BASE_DIR, "dream_bridge_app", "simulation.pkl")
@@ -277,6 +277,8 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
     except Exception as e:
         if "dream" in locals():
+            dream.status = Dream.DreamStatus.FAILED
+            dream.save(update_fields=["status", "updated_at"])
             dream.status = Dream.DreamStatus.FAILED
             dream.error_message = f"Une erreur est survenue lors du traitement: {str(e)}"
             dream.save(update_fields=["status", "error_message", "updated_at"])
