@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from datetime import date
 from .forms import CustomUserCreationForm
 
+
 class ZodiacSignTestCase(TestCase):
     """
     Cette classe de test vérifie de manière unitaire la logique de calcul
@@ -10,14 +11,15 @@ class ZodiacSignTestCase(TestCase):
     """
 
     def test_compute_zodiac_sign(self):
+
         """
         Teste la fonction _compute_zodiac avec des dates clés pour s'assurer
         qu'elle retourne le bon signe.
         """
-        # Création d'une instance du formulaire pour accéder à sa méthode statique
+    # Création d'une instance du formulaire pour accéder à sa méthode statique
         form = CustomUserCreationForm()
 
-        # Dictionnaire de cas de test 
+        # Dictionnaire de cas de test
         test_cases = {
             date(2000, 3, 21): "Bélier",
             date(2000, 4, 19): "Bélier",
@@ -29,9 +31,13 @@ class ZodiacSignTestCase(TestCase):
         }
 
         for birth_date, expected_sign in test_cases.items():
-            # On utilise subTest pour que si un cas échoue, les autres continuent et on sait exactement lequel a posé problème.
+            # et on sait exactement lequel a posé problème.
             with self.subTest(birth_date=birth_date):
-                self.assertEqual(form._compute_zodiac(birth_date), expected_sign)
+                self.assertEqual(
+                    form._compute_zodiac(birth_date),
+                    expected_sign
+                )
+
 
 class UserCreationTestCase(TestCase):
     """
@@ -47,7 +53,7 @@ class UserCreationTestCase(TestCase):
             'email': 'test@example.com',
             'password1': 'a-strong-password',
             'password2': 'a-strong-password',
-            'birth_date': '1995-05-21', # Gémeaux
+            'birth_date': '1995-05-21',  # Gémeaux
             'believes_in_astrology': True
         }
         form = CustomUserCreationForm(data=form_data)
@@ -57,11 +63,10 @@ class UserCreationTestCase(TestCase):
 
         # On sauvegarde le formulaire
         user = form.save()
-
         # On vérifie que l'utilisateur a bien été créé
         self.assertIsInstance(user, User)
         self.assertEqual(User.objects.count(), 1)
-        
+
         # On vérifie que le profil a été créé et correctement rempli
         self.assertTrue(hasattr(user, 'profile'))
         self.assertEqual(user.profile.birth_date, date(1995, 5, 21))

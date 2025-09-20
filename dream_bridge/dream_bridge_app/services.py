@@ -197,7 +197,7 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         dream = Dream.objects.get(id=dream_id)
         dream.save(update_fields=["status"])
 
-        USE_SIMULATION = False 
+        USE_SIMULATION = True
 
         if USE_SIMULATION:
             sim_path = os.path.join(settings.BASE_DIR, "dream_bridge_app", "simulation.pkl")

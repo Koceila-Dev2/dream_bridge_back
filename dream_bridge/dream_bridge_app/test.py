@@ -1,20 +1,20 @@
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from unittest.mock import patch
-from datetime import timedelta
 from unittest.mock import patch, MagicMock
+from datetime import timedelta
 from django.utils import timezone
-from .services import *
+from .services import orchestrate_dream_generation, get_emotion_from_text
 from .models import Dream
-from .metrics_dashboard import total_dreams, emotion_distribution
-from django.core.files.uploadedfile import SimpleUploadedFile
+from .metrics_dashboard import total_dreams
 from accounts.models import UserProfile
 
 
 
 # --- Catégorie 9 : Edge cases pour DreamForm et Dream model ---
+
 class DreamFormEdgeCaseTest(TestCase):
     """
     Teste les cas limites du formulaire DreamForm (données invalides, valeurs inattendues).

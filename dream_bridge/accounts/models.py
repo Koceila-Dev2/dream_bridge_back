@@ -2,12 +2,16 @@ from django.db import models
 from django.conf import settings
 import json
 
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
+    )
     birth_date = models.DateField(null=True, blank=True)
     zodiac_sign = models.CharField(max_length=20, blank=True)
     believes_in_astrology = models.BooleanField(default=False)
-
 
     def save(self, *args, **kwargs):
         """

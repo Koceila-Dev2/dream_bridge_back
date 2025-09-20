@@ -1,5 +1,10 @@
 # accounts/views.py
-from django.contrib.auth import logout, get_user_model, update_session_auth_hash
+
+from django.contrib.auth import (
+    logout,
+    get_user_model,
+    update_session_auth_hash
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
@@ -10,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CustomUserCreationForm
 from accounts.models import UserProfile
-from dream_bridge_app.forms import UserForm, ProfileForm  # réutilisés
+from dream_bridge_app.forms import UserForm, ProfileForm
 
 User = get_user_model()
 
@@ -56,27 +61,42 @@ def profile_view(request):
                 messages.success(request, "Mot de passe mis à jour.")
                 return redirect("accounts:profile")
             else:
-                messages.error(request, "Veuillez corriger les erreurs du mot de passe.")
+                messages.error(
+                    request, "Veuillez corriger les erreurs du mot de passe."
+                    )
         else:
-            # 2) Soumission du bloc "Informations du compte"
             # On veut empêcher toute modif de first_name/last_name :
-            # on injecte silencieusement les valeurs actuelles pour la validation du UserForm
+            # on injecte les valeurs actuelles pour la validation du UserForm
             data = request.POST.copy()
-            data.setdefault("first_name", user.first_name or "")
-            data.setdefault("last_name", user.last_name or "")
+            data.setdefault(
+                "first_name", user.first_name or ""
+            )
+            data.setdefault(
+                "last_name", user.last_name or ""
+            )
 
-            user_form = UserForm(data, instance=user)
-            profile_form = ProfileForm(request.POST, instance=profile)
+            user_form = UserForm(
+                data,
+                instance=user
+            )
+            profile_form = ProfileForm(
+                request.POST,
+                instance=profile
+            )
 
             if user_form.is_valid() and profile_form.is_valid():
                 # On ne sauvegarde effectivement que l'email côté utilisateur
-                # (UserForm gère l'email; first/last_name restent identiques grâce au setdefault ci-dessus)
+                # (UserForm gère l'email; first/last_name restent identiques
+                # grâce au setdefault ci-dessus)
                 user_form.save()
                 profile_form.save()
                 messages.success(request, "Profil mis à jour.")
                 return redirect("accounts:profile")
             else:
-                messages.error(request, "Veuillez corriger les erreurs du formulaire.")
+                messages.error(
+                    request,
+                    "Veuillez corriger les erreurs du formulaire."
+                )
 
     return render(
         request,
