@@ -1,12 +1,16 @@
-README - Lancer le projet Django "Dream Bridge"
+# Dream Bridge - Lancer le projet Django
 
-L’application est également disponible sur notre VPS à cette adresse : “Insérer le lien”
+L’application est également disponible sur notre VPS à cette adresse : *“Insérer le lien”*
 
-1. Cloner le dépôt
-- Dépôt : https://github.com/Koceila-Dev2/dream_bridge_back
+---
 
-2. Se placer au niveau du fichier manage.py
-- Commande : cd <répertoire_du-projet>
+## 1. Cloner le dépôt
+- Dépôt : [https://github.com/Koceila-Dev2/dream_bridge_back](https://github.com/Koceila-Dev2/dream_bridge_back)
+
+## 2. Se placer au niveau du fichier `manage.py`
+```bash
+cd <répertoire_du-projet>
+
 
 3. Installation manuelle (macOS / Linux / Windows via WSL)
 
