@@ -148,10 +148,8 @@ def dream_status_view(request, dream_id):
             }
         )
 
-    # Si le rêve est terminé ou a échoué, afficher les détails
-    # Ceci est la destination finale après le chargement ou
-    # pour un accès direct depuis la galerie
-    daily_message = dream.personal_phrase or dream.phrase
+    
+    daily_message = dream.personal_phrase 
     created_at_local = timezone.localtime(dream.created_at)
     emotion_label = (
         dream.get_emotion_display()
