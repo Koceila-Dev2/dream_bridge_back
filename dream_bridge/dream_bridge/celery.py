@@ -11,5 +11,6 @@ app = Celery('dream_bridge')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 
-# Découverte automatique des tâches dans toutes les applications Django installées
+# Découverte automatique des tâches dans toutes les
+# applications Django installées
 app.autodiscover_tasks()

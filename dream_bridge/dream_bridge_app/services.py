@@ -22,8 +22,15 @@ MISTRAL_API_KEY = settings.MISTRAL_API_KEY
 
 # ----------------------- Prompts & fichiers -----------------------
 
-PROMPTS_DIR = os.path.join(settings.BASE_DIR, "dream_bridge_app", "prompts")
-PERSONAL_MSG_PROMPT_PATH = os.path.join(PROMPTS_DIR, "personal_daily_message.txt")
+PROMPTS_DIR = os.path.join(
+    settings.BASE_DIR,
+    "dream_bridge_app",
+    "prompts"
+)
+PERSONAL_MSG_PROMPT_PATH = os.path.join(
+    PROMPTS_DIR,
+    "personal_daily_message.txt"
+)
 
 
 def get_personal_message_template() -> str:
@@ -66,10 +73,15 @@ def read_context_file(filename="context.txt"):
 
 def build_personal_message_prompt(dream: Dream, user) -> str:
     """
-    Prépare le prompt avec données du rêve + profil (astro) + émotion dominante.
+    Prépare le prompt avec données du rêve + profil (astro) +
+    émotion dominante.
     """
     profile = getattr(user, "profile", None)
-    believes = bool(getattr(profile, "believes_in_astrology", False)) if profile else False
+    believes = bool(getattr(profile, "believes_in_astrology", False))
+    if profile:
+        believes
+    else:
+        False
 
     # Récup signe astro
     sign = (getattr(profile, "zodiac_sign", "") or "").strip()
@@ -83,7 +95,7 @@ def build_personal_message_prompt(dream: Dream, user) -> str:
 
     ctx = {
         "username": user.get_full_name() or user.username,
-        "first_name": user.first_name or user.username,   
+        "first_name": user.first_name or user.username,
         "believes_in_astrology": "True" if believes else "False",
         "zodiac_sign": sign,
         "dream_transcription": (dream.transcription or "").strip(),
@@ -94,16 +106,23 @@ def build_personal_message_prompt(dream: Dream, user) -> str:
     template = get_personal_message_template()
     return template.format(**ctx)
 
+
 def _fallback_personal_message(dream: Dream, user) -> str:
     """
-    Message local si pas de clé GROQ, plus riche (émotion + nuance astro + action).
+    Message local si pas de clé GROQ, plus riche
+    (émotion + nuance astro + action).
     """
     profile = getattr(user, "profile", None)
-    believes = bool(getattr(profile, "believes_in_astrology", False)) if profile else False
+    believes = (
+        bool(getattr(profile, "believes_in_astrology", False)) if
+        profile
+        else False
+    )
 
     sign = (getattr(profile, "zodiac_sign", "") or "").strip().lower()
     if not sign and believes and getattr(profile, "birth_date", None):
         sign = get_astrological_sign(profile.birth_date).lower()
+
     # Force string conversion in case of dict or other type
     if isinstance(sign, dict):
         sign = str(sign.get("sign", ""))
@@ -121,24 +140,35 @@ def _fallback_personal_message(dream: Dream, user) -> str:
         snippet = snippet[:117].rsplit(" ", 1)[0] + "…"
 
     if emotion and emotion not in ("neutre", "erreur"):
-        emo_txt = f"Cette nuit a fait remonter {emotion}, signe d’un besoin réel qui cherche à s’exprimer. "
+        emo_txt = (
+            f"Cette nuit a fait remonter {emotion}, signe d’un besoin réel "
+            "qui cherche à s’exprimer. "
+        )
     else:
-        emo_txt = "Ce rêve met en lumière quelque chose d’encore diffus mais important. "
+        emo_txt = (
+            "Ce rêve met en lumière quelque chose"
+            "d’encore diffus mais important. "
+        )
 
     astro_txt = ""
     if believes and sign:
-        astro_txt = f" En {sign}, appuie-toi sur tes qualités naturelles pour enraciner ce pas."
+        astro_txt = (
+            f" En {sign}, appuie-toi sur tes qualités naturelles "
+            "pour enraciner ce pas."
+        )
 
     action = (
-        " Choisis une action minuscule mais tangible aujourd’hui : écrire trois lignes, envoyer un message, "
+        " Choisis une action minuscule mais tangible aujourd’hui : "
+        "écrire trois lignes, envoyer un message, "
         "ou poser une limite douce qui respecte ce que tu as compris."
     )
 
     core = (
         f"{emo_txt}"
         f"{('On y entend : « ' + snippet + ' ». ' if snippet else '')}"
-        f"Transforme ce signal en geste simple et concret, ici et maintenant."
+        "Transforme ce signal en geste simple et concret, ici et maintenant."
     )
+
     return core + astro_txt + action
 
 
@@ -149,16 +179,19 @@ def get_system_prompt() -> str:
         return content
     return (
         "Tu es un artiste onirique et un expert en interprétation des rêves. "
-        "Transforme la transcription d'un rêve en un prompt court, évocateur et visuel pour un modèle de génération d'images. "
+        "Transforme la transcription d'un rêve en un prompt court,"
+        "évocateur et visuel pour un modèle de génération d'images. "
         "- Décris la scène, les personnages, l'ambiance. "
-        "- Utilise un langage descriptif riche (couleurs, textures, lumières). "
-        "- Termine par des mots-clés de style : photorealistic, cinematic lighting, high detail, 8k. "
+        "- Utilise un langage descriptif riche (couleurs, textures, lumières)."
+        "- Termine par des mots-clés de style : photorealistic, cinematic"
+        "lighting, high detail, 8k. "
         "- Réponds uniquement par le prompt."
     )
 
 
 def get_emotion_from_text(transcription: str) -> str:
-    """Analyse la transcription pour déduire l'émotion principale via Mistral."""
+    """Analyse la transcription pour déduire
+    l'émotion principale via Mistral."""
     try:
         mistral_client = Mistral(api_key=MISTRAL_API_KEY)
         system_prompt = read_context_file("context_emotion.txt")
@@ -172,8 +205,10 @@ def get_emotion_from_text(transcription: str) -> str:
                 {
                     "role": "user",
                     "content": (
-                        "Analyse le texte ci-dessous. Ta réponse doit être un dictionnaire JSON valide "
-                        "avec des émotions en clé et des scores entre 0 et 1 en valeur. "
+                        "Analyse le texte ci-dessous. Ta réponse doit être un"
+                        "dictionnaire JSON valide "
+                        "avec des émotions en clé et"
+                        "des scores entre 0 et 1 en valeur. "
                         "Ne mets pas de texte, uniquement du JSON : "
                         f"{transcription}"
                     ),
@@ -200,7 +235,11 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         USE_SIMULATION = True
 
         if USE_SIMULATION:
-            sim_path = os.path.join(settings.BASE_DIR, "dream_bridge_app", "simulation.pkl")
+            sim_path = os.path.join(
+                settings.BASE_DIR,
+                "dream_bridge_app",
+                "simulation.pkl",
+            )
             time.sleep(7)
             with open(sim_path, "rb") as f:
                 simulation_data = pickle.load(f)
@@ -209,10 +248,22 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             dream.image_prompt = simulation_data["image_prompt"]
             file_bytes = simulation_data["image_bytes"]
             dream.status = Dream.DreamStatus.PROCESSING
-            
-            print("Simulation mode: le traitement est bien en processing")
-            dream.emotion = get_emotion_from_text(dream.transcription) or "neutre"
-            dream.save(update_fields=["status", "transcription", "image_prompt", "emotion", "updated_at"])
+
+            print(
+                "Simulation mode: le traitement est bien en processing"
+            )
+
+            transcription = dream.transcription
+            dream.emotion = get_emotion_from_text(transcription) or "neutre"
+            dream.save(
+                update_fields=[
+                    "status",
+                    "transcription",
+                    "image_prompt",
+                    "emotion",
+                    "updated_at",
+                ]
+            )
 
         else:
             # --- Transcription (Whisper Groq)
@@ -221,7 +272,9 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
             with open(audio_path, "rb") as audio_file:
                 transcription = groq_client.audio.transcriptions.create(
-                    file=audio_file, model="whisper-large-v3", language="fr"
+                    file=audio_file,
+                    model="whisper-large-v3",
+                    language="fr",
                 )
             dream.transcription = transcription.text
 
@@ -238,27 +291,44 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                 ],
             )
             dream.image_prompt = completion.choices[0].message.content.strip()
-            dream.save(update_fields=["transcription", "image_prompt", "updated_at"])
+            dream.save(
+                update_fields=["transcription",
+                               "image_prompt",
+                               "updated_at"]
+            )
 
             # --- Image (Mistral image tool)
             image_agent = mistral_client.beta.agents.create(
                 model="mistral-large-latest",
                 name="Générateur d'images de rêves",
-                description="Agent qui utilise un outil de génération d'images à partir d'un prompt texte.",
-                instructions="Utilise l'outil de génération d'image pour créer une image basée sur le prompt fourni.",
+                description=(
+                    "Agent qui utilise un outil de génération d'images "
+                    "à partir d'un prompt texte."
+                ),
+                instructions=(
+                    "Utilise l'outil de génération d'image pour"
+                    "créer une image "
+                    "basée sur le prompt fourni."
+                ),
                 tools=[{"type": "image_generation"}],
             )
             conversation_response = mistral_client.beta.conversations.start(
-                agent_id=image_agent.id, inputs=dream.image_prompt
+                agent_id=image_agent.id,
+                inputs=dream.image_prompt,
             )
+
             file_bytes = None
             last_output = conversation_response.outputs[-1]
             for chunk in last_output.content:
                 if isinstance(chunk, ToolFileChunk):
-                    file_bytes = mistral_client.files.download(file_id=chunk.file_id).read()
+                    file_bytes = mistral_client.files.download(
+                        file_id=chunk.file_id
+                    ).read()
                     break
             if file_bytes is None:
-                raise ValueError("L'agent Mistral n'a pas retourné de fichier image.")
+                raise ValueError(
+                    "L'agent Mistral n'a pas retourné de fichier image."
+                )
 
         image_name = f"dream_{dream.id}.png"
         dream.generated_image.save(image_name, ContentFile(file_bytes))
@@ -267,12 +337,19 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
         # Génération auto du message personnalisé
         try:
-            # Récupère la phrase générée
-            msg = generate_personal_message_for_dream(str(dream.id), force=True)
-            # Elle est déjà assignée dans la fonction, mais si tu veux être sûr :
+            msg = generate_personal_message_for_dream(
+                str(dream.id),
+                force=True
+            )
             dream.personal_phrase = msg
             dream.personal_phrase_date = timezone.localdate()
-            dream.save(update_fields=["personal_phrase", "personal_phrase_date", "updated_at"])
+            dream.save(
+                update_fields=[
+                    "personal_phrase",
+                    "personal_phrase_date",
+                    "updated_at",
+                ]
+            )
 
         except Exception:
             pass
@@ -280,9 +357,9 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
     except Exception as e:
         if "dream" in locals():
             dream.status = Dream.DreamStatus.FAILED
-            dream.save(update_fields=["status", "updated_at"])
-            dream.status = Dream.DreamStatus.FAILED
-            dream.error_message = f"Une erreur est survenue lors du traitement: {str(e)}"
+            dream.error_message = (
+                f"Une erreur est survenue lors du traitement: {str(e)}"
+            )
             dream.save(update_fields=["status", "error_message", "updated_at"])
 
 
@@ -309,17 +386,30 @@ def remove_accents(text: str) -> str:
 def get_astrological_sign(birth_date):
     d = birth_date.day
     m = birth_date.month
-    if (m == 3 and d >= 21) or (m == 4 and d <= 19): return "bélier"
-    if (m == 4 and d >= 20) or (m == 5 and d <= 20): return "taureau"
-    if (m == 5 and d >= 21) or (m == 6 and d <= 20): return "gémeaux"
-    if (m == 6 and d >= 21) or (m == 7 and d <= 22): return "cancer"
-    if (m == 7 and d >= 23) or (m == 8 and d <= 22): return "lion"
-    if (m == 8 and d >= 23) or (m == 9 and d <= 22): return "vierge"
-    if (m == 9 and d >= 23) or (m == 10 and d <= 22): return "balance"
-    if (m == 10 and d >= 23) or (m == 11 and d <= 21): return "scorpion"
-    if (m == 11 and d >= 22) or (m == 12 and d <= 21): return "sagittaire"
-    if (m == 12 and d >= 22) or (m == 1 and d <= 19): return "capricorne"
-    if (m == 1 and d >= 20) or (m == 2 and d <= 18): return "verseau"
+
+    if (m == 3 and d >= 21) or (m == 4 and d <= 19):
+        return "bélier"
+    if (m == 4 and d >= 20) or (m == 5 and d <= 20):
+        return "taureau"
+    if (m == 5 and d >= 21) or (m == 6 and d <= 20):
+        return "gémeaux"
+    if (m == 6 and d >= 21) or (m == 7 and d <= 22):
+        return "cancer"
+    if (m == 7 and d >= 23) or (m == 8 and d <= 22):
+        return "lion"
+    if (m == 8 and d >= 23) or (m == 9 and d <= 22):
+        return "vierge"
+    if (m == 9 and d >= 23) or (m == 10 and d <= 22):
+        return "balance"
+    if (m == 10 and d >= 23) or (m == 11 and d <= 21):
+        return "scorpion"
+    if (m == 11 and d >= 22) or (m == 12 and d <= 21):
+        return "sagittaire"
+    if (m == 12 and d >= 22) or (m == 1 and d <= 19):
+        return "capricorne"
+    if (m == 1 and d >= 20) or (m == 2 and d <= 18):
+        return "verseau"
+
     return "poissons"
 
 
@@ -331,7 +421,10 @@ def get_quote_of_the_day() -> str:
             data = r.json()
             quote = data[0]["q"]
             author = data[0]["a"]
-            translated = GoogleTranslator(source="en", target="fr").translate(quote)
+            translated = GoogleTranslator(
+                source="en",
+                target="fr"
+            ).translate(quote)
             return f"« {translated} » — {author}"
         return f"Erreur HTTP {r.status_code} lors de la récupération."
     except Exception as e:
@@ -354,27 +447,38 @@ def get_daily_message(user_id, day="TODAY") -> str:
         birth_date = profile.birth_date
         if not birth_date:
             return "La date de naissance de l'utilisateur est inconnue."
+
         sign_fr = get_astrological_sign(birth_date)
         sign_en = sign_map.get(remove_accents(sign_fr.lower()))
         if not sign_en:
             return f"Signe astrologique '{sign_fr}' non reconnu."
-        url = f"https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily?sign={sign_en.capitalize()}&day={day.upper()}"
+
+        url = (
+            f"https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily"
+            f"?sign={sign_en.capitalize()}&day={day.upper()}"
+        )
         r = requests.get(url, timeout=10)
+
         if r.status_code == 200:
             data = r.json()
             if data.get("success"):
                 horoscope = data["data"]["horoscope_data"]
-                translated = GoogleTranslator(source="en", target="fr").translate(horoscope)
-                return f"Horoscope pour {user.get_full_name() or user.username} ({sign_fr.capitalize()}) :\n{translated}"
+                translated = GoogleTranslator(
+                    source="en", target="fr"
+                ).translate(horoscope)
+                user_name = user.get_full_name() or user.username
+                return (
+                    f"Horoscope pour {user_name} ({sign_fr.capitalize()}) :\n"
+                    f"{translated}"
+                )
             return "Erreur : réponse non réussie de l'API."
+
         return f"Erreur HTTP {r.status_code} lors de la récupération."
-    else:
-        return get_quote_of_the_day()
 
-
-
+    return get_quote_of_the_day()
 
 # ----------------------- Message personnalisé -----------------------
+
 
 # --- remplace la fonction existante ---
 def generate_personal_message_for_dream(
@@ -383,9 +487,13 @@ def generate_personal_message_for_dream(
     """
     Génère et ENREGISTRE TOUJOURS Dream.personal_phrase (+ date).
     Enregistre dans 'phrase' la phrase du jour (astro/citation),
-    et dans 'personal_phrase' le message personnalisé du rêve enrichi avec la phrase du jour.
+    et dans 'personal_phrase' le message personnalisé du rêve enrichi
+    avec la phrase du jour.
     """
-    dream = Dream.objects.select_related("user", "user__profile").get(id=dream_id)
+    dream = Dream.objects.select_related(
+        "user",
+        "user__profile"
+    ).get(id=dream_id)
     prompt = build_personal_message_prompt(dream, dream.user)
     phrase_du_jour = get_daily_message(dream.user_id)
     try:
@@ -399,8 +507,10 @@ def generate_personal_message_for_dream(
                     {
                         "role": "system",
                         "content": (
-                            "Tu es un coach onirique bienveillant. Rédige un message en français, "
-                            "sans emoji ni liste ni titre, en 2–3 phrases, ancré dans le rêve."
+                            "Tu es un coach onirique bienveillant. "
+                            "Rédige un message en français, "
+                            "sans emoji ni liste ni titre, en 2–3 phrases,"
+                            "ancré dans le rêve."
                         ),
                     },
                     {"role": "user", "content": prompt},
@@ -415,9 +525,16 @@ def generate_personal_message_for_dream(
     dream.phrase = phrase_du_jour or ""
     dream.phrase_date = timezone.localdate()
 
-    # Enregistre uniquement le message personnalisé dans la colonne 'personal_phrase'
+    # Enregistre uniquement le message personnalisé dans la colonne
+    # 'personal_phrase'
     dream.personal_phrase = msg or ""
     dream.personal_phrase_date = timezone.localdate()
 
-    dream.save(update_fields=["phrase", "personal_phrase", "personal_phrase_date", "updated_at", "phrase_date"])
+    dream.save(
+        update_fields=["phrase",
+                       "personal_phrase",
+                       "personal_phrase_date",
+                       "updated_at",
+                       "phrase_date"]
+    )
     return dream.personal_phrase

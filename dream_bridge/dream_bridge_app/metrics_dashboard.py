@@ -1,11 +1,13 @@
+
 from django.utils import timezone
 from datetime import timedelta
 from collections import Counter
 from .models import Dream
-from collections import defaultdict, Counter # à regarder de plus près
-
+from collections import defaultdict
 
 # --- Liste des émotions disponibles pour un utilisateur ---
+
+
 def emotions_disponible(user):
     qs = Dream.objects.all()
     if user is not None:
@@ -13,20 +15,30 @@ def emotions_disponible(user):
     return qs.values_list('emotion', flat=True).distinct()
 
 
-# --- Récupérer les rêves d’un utilisateur sur une période, avec filtre émotion ---
+# --- Récupérer les rêves d’un utilisateur sur une période,
+# avec filtre émotion ---
 def get_dreams_in_period(user, period="all", emotion=None):
     today = timezone.localdate()
     qs = Dream.objects.filter(user=user).order_by("created_at")
 
     if period == "3d":
         start_date = today - timedelta(days=2)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     elif period == "7d":
         start_date = today - timedelta(days=6)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     elif period in ("1m", "30d"):
         start_date = today - timedelta(days=29)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     # 'all' ou autres → pas de filtre par date, déjà pris en compte
 
     if emotion and emotion != "all":
@@ -48,7 +60,6 @@ def dream_frequency(user, period="all", emotion=None):
 
     dream_days = set(qs.values_list("created_at__date", flat=True))
 
-    today = timezone.localdate()
     if period == "3d":
         total_days = 3
     elif period == "7d":
@@ -82,23 +93,35 @@ def emotion_distribution(user, period="all", emotion=None):
 # --- Longueur moyenne des récits ---
 def get_transcription_trend(user, period="all", emotion=None):
     """
-    Retourne la longueur moyenne des transcriptions par jour pour un utilisateur,
+    Retourne la longueur moyenne des transcriptions par,
     en tenant compte de la période et éventuellement d'une émotion filtrée.
-    Renvoie une liste de dicts : [{'date': 'YYYY-MM-DD', 'avg_length': 42.5}, ...]
+    Résultat : liste de dicts avec 'date' et 'avg_length'
     """
     today = timezone.localdate()
-    qs = Dream.objects.filter(user=user, transcription__isnull=False).order_by("created_at")
+    qs = Dream.objects.filter(
+        user=user,
+        transcription__isnull=False
+    ).order_by("created_at")
 
     # Filtre sur la période
     if period == "3d":
         start_date = today - timedelta(days=2)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     elif period == "7d":
         start_date = today - timedelta(days=6)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     elif period in ("1m", "30d"):
         start_date = today - timedelta(days=29)
-        qs = qs.filter(created_at__date__gte=start_date, created_at__date__lte=today)
+        qs = qs.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=today
+        )
     # 'all' → pas de filtre
 
     # Filtre par émotion si demandé
@@ -121,5 +144,3 @@ def get_transcription_trend(user, period="all", emotion=None):
         trend.append({"date": str(day), "avg_length": round(avg_length, 2)})
 
     return trend
-
-

@@ -2,6 +2,7 @@ import os
 from celery import shared_task
 from .services import orchestrate_dream_generation
 
+
 # bind=True permet d'accéder à l'instance de la tâche (self)
 @shared_task
 def process_dream_audio_task(dream_id: str, temp_audio_path: str):
@@ -13,7 +14,6 @@ def process_dream_audio_task(dream_id: str, temp_audio_path: str):
         print(f"Processing dream {dream_id} from temp file: {temp_audio_path}")
         orchestrate_dream_generation(dream_id, temp_audio_path)
     finally:
-        import os
         try:
             os.remove(temp_audio_path)
             print(f"Deleted temporary file: {temp_audio_path}")
