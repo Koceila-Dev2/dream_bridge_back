@@ -1,14 +1,20 @@
-
 import os
 import pickle
 import json
 import time
 import requests
+import google
+import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.utils import timezone
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
 
 from groq import Groq
 from mistralai import Mistral
@@ -19,9 +25,13 @@ from deep_translator import GoogleTranslator
 from .models import Dream
 
 User = get_user_model()
-MISTRAL_API_KEY = settings.MISTRAL_API_KEY
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# ----------------------- Prompts & fichiers -----------------------
+client = genai.Client(api_key=GOOGLE_API_KEY)
+
+logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = os.path.join(
     settings.BASE_DIR,
@@ -33,7 +43,6 @@ PERSONAL_MSG_PROMPT_PATH = os.path.join(
     "personal_daily_message.txt"
 )
 
-
 def read_context_file(filename="context.txt"):
     """Lit un fichier de contexte depuis le dossier de l'application."""
     path = os.path.join(settings.BASE_DIR, "dream_bridge_app", filename)
@@ -42,7 +51,6 @@ def read_context_file(filename="context.txt"):
             return file.read()
     except FileNotFoundError:
         return ""
-
 
 def get_personal_message_template() -> str:
     """
@@ -196,57 +204,67 @@ def generate_personal_message_for_dream(dream_id: str) -> str:
     Génère et enregistre Dream.personal_phrase + date.
     Utilise la phrase du jour pour enrichir le message personnalisé.
     """
-
-    # Récupération du rêve et de l'utilisateur
-    dream = Dream.objects.select_related("user", "user__profile").get(
-        id=dream_id
-    )
-    prompt = build_personal_message_prompt(dream, dream.user)
-
-    # Préparation du client Mistral
     try:
-        mistral_client = Mistral(api_key=MISTRAL_API_KEY)
-        chat_response = mistral_client.chat.complete(
-            model="mistral-large-latest",
-            messages=[
-                {"role": "system", "content": prompt},
-                {
-                    "role": "user",
-                    "content": (
-                        "Utilise les infos ci-dessus pour rédiger le message :"
-                        "2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais"
-                        "précis,ancré dans le rêve.\n"
-                        "- Fais sentir explicitement l’émotion dominante et"
-                        "ce qu’elle invite à faire.\n"
-                        "- Si Croit en l’astrologie = True ET Signe renseigné,"
-                        "ajoute une nuance subtile et positive liée au signe"
-                        "(sans cliché ni horoscope brut).\n"
-                        "- Termine par une micro-action concrète issue du rêve"
-                        "(ex. noter, appeler, clarifier, respirer, poser une"
-                        "limite, oser demander).\n"
-                        "- Pas de liste, pas d’emoji, pas de titre.\n"
-                        "Sortie : uniquement le message."
-                    )
-                },
-            ],
-            temperature=0.8,
-        )
-        msg = (chat_response.choices[0].message.content or "").strip()
-    except Exception:
-        print("CA NE MARCHE PAS")
-        msg = _fallback_personal_message(dream, dream.user)
+        # Récupération du rêve et de l'utilisateur
+        dream = Dream.objects.select_related("user", "user__profile").get(id=dream_id)
+        logger.info(f"Récupération du rêve avec ID {dream_id} réussie.")
 
-    # Enregistre la phrase du jour dans la colonne 'phrase'
-    # dream.phrase = phrase_du_jour or ""
-    # dream.phrase_date = timezone.localdate()
+        prompt = build_personal_message_prompt(dream, dream.user)
+        logger.debug(f"Prompt généré : {prompt[:100]}...")
 
-    # Enregistre uniquement le message personnalisé dans
-    # la colonne 'personal_phrase'
-    dream.personal_phrase = msg or ""
-    dream.personal_phrase_date = timezone.localdate()
+        # Vérification de la clé API Mistral
+        if not MISTRAL_API_KEY:
+            logger.error("MISTRAL_API_KEY n'est pas définie.")
+            msg = _fallback_personal_message(dream, dream.user)
+        else:
+            try:
+                # Préparation du client Mistral
+                mistral_client = Mistral(api_key=MISTRAL_API_KEY)
+                logger.info("Client Mistral initialisé avec succès.")
 
-    dream.save(update_fields=["personal_phrase", "personal_phrase_date"])
-    return dream.personal_phrase
+                chat_response = mistral_client.chat.complete(
+                    model="mistral-large-latest",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {
+                            "role": "user",
+                            "content": (
+                                "Utilise les infos ci-dessus pour rédiger le message :"
+                                "2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais précis, ancré dans le rêve."
+                            )
+                        },
+                    ],
+                    temperature=0.8,
+                )
+
+                if not chat_response or not chat_response.choices:
+                    logger.warning("Réponse vide de Mistral.")
+                    msg = _fallback_personal_message(dream, dream.user)
+                else:
+                    msg = (chat_response.choices[0].message.content or "").strip()
+                    logger.info(f"Message généré avec succès : {msg[:100]}...")
+
+            except Exception as e:
+                logger.error(f"Erreur lors de l'appel à Mistral : {str(e)}")
+                msg = _fallback_personal_message(dream, dream.user)
+
+        # Enregistrement du message personnalisé
+        if msg:
+            dream.personal_phrase = msg
+            dream.personal_phrase_date = timezone.localdate()
+            dream.save(update_fields=["personal_phrase", "personal_phrase_date"])
+            logger.info(f"Message personnalisé sauvegardé pour le rêve {dream_id}.")
+            return msg
+        else:
+            logger.warning("Aucun message généré.")
+            return ""
+
+    except Dream.DoesNotExist:
+        logger.error(f"Rêve avec ID {dream_id} non trouvé.")
+        return ""
+    except Exception as e:
+        logger.error(f"Erreur inattendue : {str(e)}")
+        return ""
 
 
 def get_system_prompt() -> str:
@@ -303,6 +321,39 @@ def get_emotion_from_text(transcription: str) -> str:
     except Exception:
         return "neutre"
 
+def save_image_or_fallback(response, dream_id):
+    """
+    Tente d'extraire les données de l'image de la réponse Gemini.
+    Si cela échoue, utilise une image de secours locale.
+    Retourne le nom du fichier et les données binaires de l'image.
+    """
+    file_bytes = None
+    
+    # Essai d'extraction des données de l'image de l'API
+    try:
+        # On accède directement à la partie qui nous intéresse
+        file_bytes = response.candidates[0].content.parts[0].inline_data.data
+        if not file_bytes:
+            logger.warning(f"La réponse de Gemini pour le rêve {dream_id} ne contenait pas de données d'image.")
+    except (AttributeError, IndexError, TypeError) as e:
+        # Cette ligne intercepte toutes les erreurs possibles si la structure de la réponse n'est pas celle attendue
+        logger.warning(f"Impossible d'extraire l'image de la réponse de Gemini pour le rêve {dream_id} : {e}. Utilisation de l'image par défaut.")
+        file_bytes = None
+
+    # Si on n'a pas réussi à obtenir l'image, on utilise le fallback
+    if not file_bytes:
+        default_image_path = os.path.join(settings.BASE_DIR, "media", "dreams", "images", "default_image.png")
+        try:
+            with open(default_image_path, "rb") as f:
+                file_bytes = f.read()
+            logger.info(f"Utilisation de l'image par défaut pour le rêve {dream_id}.")
+        except FileNotFoundError:
+            logger.critical(f"Le fichier par défaut '{default_image_path}' est introuvable.")
+            raise  # On propage l'erreur car c'est un problème de configuration
+
+    image_name = f"dream_{dream_id}.png"
+    return image_name, file_bytes
+
 
 def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
     """Orchestre le pipeline (transcription → émotion → prompt → image)."""
@@ -310,7 +361,7 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         dream = Dream.objects.get(id=dream_id)
         dream.save(update_fields=["status"])
 
-        USE_SIMULATION = True
+        USE_SIMULATION = False
 
         if USE_SIMULATION:
             sim_path = os.path.join(
@@ -318,7 +369,6 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                 "dream_bridge_app",
                 "simulation.pkl",
             )
-            time.sleep(7)
             with open(sim_path, "rb") as f:
                 simulation_data = pickle.load(f)
 
@@ -349,8 +399,8 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
         else:
             # --- Transcription (Whisper Groq)
-            groq_client = Groq(api_key=settings.GROQ_API_KEY)
-            mistral_client = Mistral(api_key=settings.MISTRAL_API_KEY)
+            groq_client = Groq(api_key=GROQ_API_KEY)
+            mistral_client = Mistral(api_key=MISTRAL_API_KEY)
 
             with open(audio_path, "rb") as audio_file:
                 transcription = groq_client.audio.transcriptions.create(
@@ -366,12 +416,15 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
             # --- Prompt d'image
             completion = groq_client.chat.completions.create(
-                model="llama3-70b-8192",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": get_system_prompt()},
                     {"role": "user", "content": dream.transcription},
                 ],
             )
+            # Vérification pour completion
+            if not completion or not completion.choices:
+                raise ValueError("Aucune réponse valide pour le prompt d'image.")
             dream.image_prompt = completion.choices[0].message.content.strip()
             dream.save(
                 update_fields=["transcription",
@@ -379,63 +432,94 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                                "updated_at"]
             )
 
-            # --- Image (Mistral image tool)
-            image_agent = mistral_client.beta.agents.create(
-                model="mistral-large-latest",
-                name="Générateur d'images de rêves",
-                description=(
-                    "Agent qui utilise un outil de génération d'images "
-                    "à partir d'un prompt texte."
-                ),
-                instructions=(
-                    "Utilise l'outil de génération d'image pour"
-                    "créer une image "
-                    "basée sur le prompt fourni."
-                ),
-                tools=[{"type": "image_generation"}],
-            )
-            conversation_response = mistral_client.beta.conversations.start(
-                agent_id=image_agent.id,
-                inputs=dream.image_prompt,
-            )
+ #================================== GIMINI test =======================           
+            
 
-            file_bytes = None
-            last_output = conversation_response.outputs[-1]
-            for chunk in last_output.content:
-                if isinstance(chunk, ToolFileChunk):
-                    file_bytes = mistral_client.files.download(
-                        file_id=chunk.file_id
-                    ).read()
-                    break
-            if file_bytes is None:
-                raise ValueError(
-                    "L'agent Mistral n'a pas retourné de fichier image."
+            # prompt = (
+            #     "Utilise l'outil de génération d'image pour"
+            #         "créer une image "
+            #         "basée sur le prompt fourni."
+            # )
+            prompt =  dream.image_prompt
+
+            logger.debug(f"Prompt envoyé à Gemini : {prompt}")
+            try:
+                response = client.models.generate_content(
+                    model="models/gemini-2.5-flash-image-preview",
+                    contents=prompt,
+                #     config=types.GenerateImagesConfig(
+                #         number_of_images=1,
+                # )
                 )
+                
+                
+            except Exception as e:
+                logger.error(f"Erreur lors de l'appel à Gemini : {str(e)}")
+                raise
 
-        image_name = f"dream_{dream.id}.png"
-        dream.generated_image.save(image_name, ContentFile(file_bytes))
-        dream.status = Dream.DreamStatus.COMPLETED
-        dream.save(update_fields=["status", "updated_at"])
+            logger.debug(f"Réponse brute de Gemini : {response}")
+
+           
+            # dream.generated_image.save(image_name, ContentFile(file_bytes))
+#============================ Gemini image generation ============================
+
+
+            # # --- Image (Mistral image tool)
+            # image_agent = mistral_client.beta.agents.create(
+            #     model="mistral-large-latest",
+            #     name="Générateur d'images de rêves",
+            #     description=(
+            #         "Agent qui utilise un outil de génération d'images "
+            #         "à partir d'un prompt texte."
+            #     ),
+            #     instructions=(
+            #         "Utilise l'outil de génération d'image pour"
+            #         "créer une image "
+            #         "basée sur le prompt fourni."
+            #     ),
+            #     tools=[{"type": "image_generation"}],
+            # )
+            # conversation_response = mistral_client.beta.conversations.start(
+            #     agent_id=image_agent.id,
+            #     inputs=dream.image_prompt,
+            # )
+
+            # file_bytes = None
+            # last_output = conversation_response.outputs[-1]
+            # for chunk in last_output.content:
+            #     if isinstance(chunk, ToolFileChunk):
+            #         file_bytes = mistral_client.files.download(
+            #             file_id=chunk.file_id
+            #         ).read()
+            #         break
+            # if file_bytes is None:
+            #     raise ValueError(
+            #         "L'agent Mistral n'a pas retourné de fichier image."
+            #     )
+
+        # Gestion centralisée de l'enregistrement de l'image ou fallback
+        
+        # Remplacement dans orchestrate_dream_generation
+        try:
+            image_name, file_bytes = save_image_or_fallback(response, dream.id)
+            dream.generated_image.save(image_name, ContentFile(file_bytes))
+        except Exception as e:
+            logger.error(f"Erreur lors de l'enregistrement de l'image : {str(e)}")
+            raise
 
         # Génération auto du message personnalisé
         try:
-            msg = generate_personal_message_for_dream(
-                str(dream.id),
-                force=True
-            )
-            dream.personal_phrase = msg
-            dream.personal_phrase_date = timezone.localdate()
-            dream.save(
-                update_fields=[
-                    "personal_phrase",
-                    "personal_phrase_date",
-                    "updated_at",
-                ]
-            )
+            logger.info(f"Début de la génération du message personnalisé pour le rêve {dream_id}.")
 
-        except Exception:
-            print("Échec de la génération du message personnalisé automatique")
+            generate_personal_message_for_dream(str(dream.id))
+            
+            logger.info(f"Message personnalisé généré et sauvegardé pour le rêve {dream_id}.")
+        except Exception as e:
+            logger.error(f"Échec de la génération du message personnalisé automatique : {str(e)}")
             pass
+
+        dream.status = Dream.DreamStatus.COMPLETED
+        dream.save(update_fields=["status", "updated_at"])
 
     except Exception as e:
         if "dream" in locals():
@@ -470,8 +554,6 @@ def get_astrological_sign(birth_date):
     d = birth_date.day
     m = birth_date.month
 
-    if (m == 3 and d >= 21) or (m == 4 and d <= 19):
-        return "bélier"
     if (m == 4 and d >= 20) or (m == 5 and d <= 20):
         return "taureau"
     if (m == 5 and d >= 21) or (m == 6 and d <= 20):
