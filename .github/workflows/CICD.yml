@@ -46,7 +46,7 @@ jobs:
       run: |
         source venv/bin/activate
         pip install flake8
-        flake8 --exclude=migrations
+        flake8 --exclude=migrations,venv
 
   deploy:
     needs: build
