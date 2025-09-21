@@ -13,7 +13,7 @@ MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 DEBUG = True
 # SECRET_KEY = os.environ.get("SECRET_KEY")
 
-SECRET_KEY = 'django-insecure-xqf#8#%53e&o+nz2=#2b5^yqhryecmdz6o0u@(_l)yd^#ndd^a'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 

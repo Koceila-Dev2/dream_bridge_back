@@ -25,17 +25,13 @@ from deep_translator import GoogleTranslator
 from .models import Dream
 
 User = get_user_model()
-# MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
-MISTRAL_API_KEY = "HUe9SmroVkxdgWURzHVo5x5rpU9jyg0M"
-# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_API_KEY = "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"
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 logger = logging.getLogger(__name__)
-
-# ----------------------- Prompts & fichiers -----------------------
 
 PROMPTS_DIR = os.path.join(
     settings.BASE_DIR,
@@ -47,7 +43,6 @@ PERSONAL_MSG_PROMPT_PATH = os.path.join(
     "personal_daily_message.txt"
 )
 
-
 def read_context_file(filename="context.txt"):
     """Lit un fichier de contexte depuis le dossier de l'application."""
     path = os.path.join(settings.BASE_DIR, "dream_bridge_app", filename)
@@ -56,7 +51,6 @@ def read_context_file(filename="context.txt"):
             return file.read()
     except FileNotFoundError:
         return ""
-
 
 def get_personal_message_template() -> str:
     """
