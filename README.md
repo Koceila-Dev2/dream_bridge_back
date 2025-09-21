@@ -76,6 +76,9 @@ cd <répertoire_du-projet>
   - macOS / Linux :
     sudo bash install.sh
   - WSL / Ubuntu :
+    sudo apt update
+    sudo apt install -y dos2unix
+    dos2unix install.sh
     ./install.sh
   > Sur WSL, assurez-vous d’être dans un terminal Ubuntu, pas PowerShell.
 
