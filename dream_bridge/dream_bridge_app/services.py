@@ -26,7 +26,7 @@ from .models import Dream
 
 User = get_user_model()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
