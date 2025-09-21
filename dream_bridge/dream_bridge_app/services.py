@@ -28,6 +28,7 @@ User = get_user_model()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+MISTRAL_API_KEY_IMAGE = os.getenv("MISTRAL_API_KEY_IMAGE")
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
@@ -321,27 +322,90 @@ def get_emotion_from_text(transcription: str) -> str:
     except Exception:
         return "neutre"
 
-def save_image_or_fallback(response, dream_id):
+def save_image_or_fallback(response, dream_id, prompt, mistral_client=None) -> tuple:
     """
     Tente d'extraire les données de l'image de la réponse Gemini.
-    Si cela échoue, utilise une image de secours locale.
-    Retourne le nom du fichier et les données binaires de l'image.
+    Si cela échoue, tente Mistral (si disponible), puis une image par défaut.
+    Retourne toujours un tuple (image_name, bytes).
     """
     file_bytes = None
-    
-    # Essai d'extraction des données de l'image de l'API
-    try:
-        # On accède directement à la partie qui nous intéresse
-        file_bytes = response.candidates[0].content.parts[0].inline_data.data
-        if not file_bytes:
-            logger.warning(f"La réponse de Gemini pour le rêve {dream_id} ne contenait pas de données d'image.")
-    except (AttributeError, IndexError, TypeError) as e:
-        # Cette ligne intercepte toutes les erreurs possibles si la structure de la réponse n'est pas celle attendue
-        logger.warning(f"Impossible d'extraire l'image de la réponse de Gemini pour le rêve {dream_id} : {e}. Utilisation de l'image par défaut.")
-        file_bytes = None
+    image_name = f"dream_{dream_id}.png"
 
-    # Si on n'a pas réussi à obtenir l'image, on utilise le fallback
-    if not file_bytes:
+    # Defensive extraction from Gemini response
+    try:
+        try:
+            part = response.candidates[0].content.parts[0].inline_data
+            raw = getattr(part, "data", None) or getattr(part, "base64", None)
+            if raw:
+                if isinstance(raw, str):
+                    import base64
+                    try:
+                        file_bytes = base64.b64decode(raw)
+                    except Exception:
+                        file_bytes = raw.encode("utf-8")
+                else:
+                    file_bytes = raw
+        except Exception:
+            # shape not as expected; proceed to fallback
+            file_bytes = None
+        # Mistral fallback if needed
+        if not file_bytes:
+            logger.info(f"Pas d'image issue de Gemini pour le rêve {dream_id}, tentative Mistral si disponible.")
+            try:
+                if mistral_client is None:
+                    mistral_client = Mistral(api_key=MISTRAL_API_KEY_IMAGE)
+
+                image_agent = mistral_client.beta.agents.create(
+                    model="mistral-medium-2505",
+                    name="Générateur d'images de rêves",
+                    description=(
+                        "Agent qui utilise un outil de génération d'images à partir d'un prompt texte."
+                    ),
+                    instructions=(
+                        "Utilise l'outil de génération d'image pour créer une image basée sur le prompt fourni."
+                    ),
+                    tools=[{"type": "image_generation"}],
+                )
+
+                conversation_response = mistral_client.beta.conversations.start(
+                    agent_id=image_agent.id,
+                    inputs=prompt,
+                )
+
+                last_output = conversation_response.outputs[-1]
+                for chunk in last_output.content:
+                    if isinstance(chunk, ToolFileChunk):
+                        file_bytes = mistral_client.files.download(file_id=chunk.file_id).read()
+                        break
+            except Exception as e:
+                logger.warning(f"Mistral fallback failed for dream {dream_id}: {e}")
+
+        # Final fallback to default image
+        if not file_bytes:
+            default_image_path = os.path.join(settings.BASE_DIR, "media", "dreams", "images", "default_image.png")
+            try:
+                with open(default_image_path, "rb") as f:
+                    file_bytes = f.read()
+                logger.info(f"Utilisation de l'image par défaut pour le rêve {dream_id}.")
+            except FileNotFoundError:
+                logger.critical(f"Le fichier par défaut '{default_image_path}' est introuvable.")
+                raise
+
+        return image_name, file_bytes
+
+    except Exception as e:
+        # As a last resort attempt to load default image or re-raise
+        try:
+            default_image_path = os.path.join(settings.BASE_DIR, "media", "dreams", "images", "default_image.png")
+            with open(default_image_path, "rb") as f:
+                file_bytes = f.read()
+            return image_name, file_bytes
+        except Exception:
+            logger.critical(f"save_image_or_fallback fatal error for dream {dream_id}: {e}")
+            raise
+    
+    except (AttributeError, IndexError, TypeError) as e:
+        logger.warning(f"Impossible d'extraire l'image de la réponse de Gemini pour le rêve {dream_id} : {e}. Utilisation de l'image par défaut.")
         default_image_path = os.path.join(settings.BASE_DIR, "media", "dreams", "images", "default_image.png")
         try:
             with open(default_image_path, "rb") as f:
@@ -351,8 +415,8 @@ def save_image_or_fallback(response, dream_id):
             logger.critical(f"Le fichier par défaut '{default_image_path}' est introuvable.")
             raise  # On propage l'erreur car c'est un problème de configuration
 
-    image_name = f"dream_{dream_id}.png"
-    return image_name, file_bytes
+        image_name = f"dream_{dream_id}.png"
+        return image_name, file_bytes
 
 
 def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
@@ -460,7 +524,6 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             logger.debug(f"Réponse brute de Gemini : {response}")
 
            
-            # dream.generated_image.save(image_name, ContentFile(file_bytes))
 #============================ Gemini image generation ============================
 
 
@@ -500,8 +563,10 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
         # Gestion centralisée de l'enregistrement de l'image ou fallback
         
         # Remplacement dans orchestrate_dream_generation
+
+
         try:
-            image_name, file_bytes = save_image_or_fallback(response, dream.id)
+            image_name, file_bytes = save_image_or_fallback(response, dream.id, prompt, mistral_client=mistral_client)
             dream.generated_image.save(image_name, ContentFile(file_bytes))
         except Exception as e:
             logger.error(f"Erreur lors de l'enregistrement de l'image : {str(e)}")
