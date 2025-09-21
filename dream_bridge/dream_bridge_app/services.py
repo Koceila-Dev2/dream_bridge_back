@@ -1,8 +1,8 @@
+
 import os
 import pickle
 import json
 import time
-from xmlrpc import client
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -28,6 +28,7 @@ PERSONAL_MSG_PROMPT_PATH = os.path.join(
     "personal_daily_message.txt"
 )
 
+
 def read_context_file(filename="context.txt"):
     """Lit un fichier de contexte depuis le dossier de l'application."""
     path = os.path.join(settings.BASE_DIR, "dream_bridge_app", filename)
@@ -36,6 +37,7 @@ def read_context_file(filename="context.txt"):
             return file.read()
     except FileNotFoundError:
         return ""
+
 
 def get_personal_message_template() -> str:
     """
@@ -47,7 +49,8 @@ def get_personal_message_template() -> str:
             return f.read()
     except FileNotFoundError:
         return (
-            "Tu écris un « message du jour » personnalisé, en français, pour {username}.\n\n"
+            "Tu écris un « message du jour » personnalisé, en français, pour "
+            "{username}.\n\n"
             "CONTEXTE RÊVE\n"
             "- Transcription (brute) : {dream_transcription}\n"
             "- Ambiance / prompt d’image : {image_prompt}\n"
@@ -56,12 +59,20 @@ def get_personal_message_template() -> str:
             "- Croit en l’astrologie : {believes_in_astrology}\n"
             "- Signe astrologique (si connu) : {zodiac_sign}\n\n"
             "INSTRUCTIONS\n"
-            "- 2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais précis, ancré dans le rêve.\n"
-            "- Fais sentir explicitement l’émotion dominante et ce qu’elle invite à faire.\n"
-            "- Si Croit en l’astrologie = True ET Signe renseigné, ajoute une nuance subtile et positive liée au signe (sans cliché ni horoscope brut).\n"
-            "- Termine par une micro-action concrète issue du rêve (ex. noter, appeler, clarifier, respirer, poser une limite, oser demander).\n"
-            "- Pas de liste, pas d’emoji, pas de titre. Sortie : uniquement le message.\n"
+            "- 2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais précis, "
+            "ancré dans le rêve.\n"
+            "- Fais sentir explicitement l’émotion dominante et ce qu’elle "
+            "invite à faire.\n"
+            "- Si Croit en l’astrologie = True ET Signe renseigné, ajoute "
+            "une nuance subtile et positive liée au signe "
+            "(sans cliché ni horoscope brut).\n"
+            "- Termine par une micro-action concrète issue du rêve "
+            "(ex. noter, appeler, clarifier, respirer, poser une limite, "
+            "oser demander).\n"
+            "- Pas de liste, pas d’emoji, pas de titre. "
+            "Sortie : uniquement le message.\n"
         )
+
 
 def build_personal_message_prompt(dream: Dream, user) -> str:
     """
@@ -163,32 +174,44 @@ def _fallback_personal_message(dream: Dream, user) -> str:
 
     return core + astro_txt + action
 
-def generate_personal_message_for_dream(
-    dream_id: str) -> str:
+
+def generate_personal_message_for_dream(dream_id: str) -> str:
     """
-    Génère et ENREGISTRE TOUJOURS Dream.personal_phrase (+ date).
-    Enregistre dans 'phrase' la phrase du jour (astro/citation),
-    et dans 'personal_phrase' le message personnalisé du rêve enrichi avec la phrase du jour.
+    Génère et enregistre Dream.personal_phrase + date.
+    Utilise la phrase du jour pour enrichir le message personnalisé.
     """
-    dream = Dream.objects.select_related("user", "user__profile").get(id=dream_id)
-    prompt = build_personal_message_prompt(dream, dream.user) 
-    phrase_du_jour = get_daily_message(dream.user_id)
+
+    # Récupération du rêve et de l'utilisateur
+    dream = Dream.objects.select_related("user", "user__profile").get(
+        id=dream_id
+    )
+    prompt = build_personal_message_prompt(dream, dream.user)
+
+    # Préparation du client Mistral
     try:
         mistral_client = Mistral(api_key=MISTRAL_API_KEY)
         chat_response = mistral_client.chat.complete(
             model="mistral-large-latest",
             messages=[
+                {"role": "system", "content": prompt},
                 {
-                    "role": "system",
-                    "content": prompt
-                    
+                    "role": "user",
+                    "content": (
+                        "Utilise les infos ci-dessus pour rédiger le message :"
+                        "2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais"
+                        "précis,ancré dans le rêve.\n"
+                        "- Fais sentir explicitement l’émotion dominante et"
+                        "ce qu’elle invite à faire.\n"
+                        "- Si Croit en l’astrologie = True ET Signe renseigné,"
+                        "ajoute une nuance subtile et positive liée au signe"
+                        "(sans cliché ni horoscope brut).\n"
+                        "- Termine par une micro-action concrète issue du rêve"
+                        "(ex. noter, appeler, clarifier, respirer, poser une"
+                        "limite, oser demander).\n"
+                        "- Pas de liste, pas d’emoji, pas de titre.\n"
+                        "Sortie : uniquement le message."
+                    )
                 },
-                {"role": "user", "content": "utilises les infos ci-dessus pour rédiger le message :"
-                "2 à 3 phrases (≈ 70–110 mots), ton chaleureux mais précis, ancré dans le rêve.\n"
-                "- Fais sentir explicitement l’émotion dominante et ce qu’elle invite à faire.\n"
-                "- Si Croit en l’astrologie = True ET Signe renseigné, ajoute une nuance subtile et positive liée au signe (sans cliché ni horoscope brut).\n"
-                "- Termine par une micro-action concrète issue du rêve (ex. noter, appeler, clarifier, respirer, poser une limite, oser demander).\n"
-                "- Pas de liste, pas d’emoji, pas de titre. Sortie : uniquement le message."},
             ],
             temperature=0.8,
         )
@@ -201,11 +224,12 @@ def generate_personal_message_for_dream(
     # dream.phrase = phrase_du_jour or ""
     # dream.phrase_date = timezone.localdate()
 
-    # Enregistre uniquement le message personnalisé dans la colonne 'personal_phrase'
+    # Enregistre uniquement le message personnalisé dans
+    # la colonne 'personal_phrase'
     dream.personal_phrase = msg or ""
     dream.personal_phrase_date = timezone.localdate()
 
-    dream.save(update_fields=[ "personal_phrase", "personal_phrase_date"])
+    dream.save(update_fields=["personal_phrase", "personal_phrase_date"])
     return dream.personal_phrase
 
 
@@ -224,6 +248,7 @@ def get_system_prompt() -> str:
         "lighting, high detail, 8k. "
         "- Réponds uniquement par le prompt."
     )
+
 
 # Code pour determiner l'émotion dominante via Mistral
 def get_emotion_from_text(transcription: str) -> str:
@@ -281,7 +306,10 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
                 simulation_data = pickle.load(f)
 
             # dream.transcription = simulation_data["transcription"]
-            dream.transcription = "Un rêve étrange avec des montagnes, des étoiles, et une rivière qui serpente à travers une forêt dense et mystérieuse."
+            dream.transcription = "Un rêve étrange avec des montagnes,"
+            "des étoiles,"
+            "et une rivière qui serpente à travers"
+            "une forêt dense et mystérieuse."
             dream.image_prompt = simulation_data["image_prompt"]
             file_bytes = simulation_data["image_bytes"]
             dream.status = Dream.DreamStatus.PROCESSING
@@ -390,7 +418,7 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             )
 
         except Exception:
-            print("Échec de la génération du message personnalisé automatique.")
+            print("Échec de la génération du message personnalisé automatique")
             pass
 
     except Exception as e:
@@ -515,65 +543,3 @@ def get_daily_message(user_id, day="TODAY") -> str:
         return f"Erreur HTTP {r.status_code} lors de la récupération."
 
     return get_quote_of_the_day()
-
-# ----------------------- Message personnalisé -----------------------
-
-
-# --- remplace la fonction existante ---
-def generate_personal_message_for_dream(
-    dream_id: str, force: bool = True, model: str = "llama3-70b-8192"
-) -> str:
-    """
-    Génère et ENREGISTRE TOUJOURS Dream.personal_phrase (+ date).
-    Enregistre dans 'phrase' la phrase du jour (astro/citation),
-    et dans 'personal_phrase' le message personnalisé du rêve enrichi
-    avec la phrase du jour.
-    """
-    dream = Dream.objects.select_related(
-        "user",
-        "user__profile"
-    ).get(id=dream_id)
-    prompt = build_personal_message_prompt(dream, dream.user)
-    phrase_du_jour = get_daily_message(dream.user_id)
-    try:
-        if not getattr(settings, "GROQ_API_KEY", None):
-            msg = _fallback_personal_message(dream, dream.user)
-        else:
-            client = Groq(api_key=settings.GROQ_API_KEY)
-            completion = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "Tu es un coach onirique bienveillant. "
-                            "Rédige un message en français, "
-                            "sans emoji ni liste ni titre, en 2–3 phrases,"
-                            "ancré dans le rêve."
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.8,
-            )
-            msg = (completion.choices[0].message.content or "").strip()
-    except Exception:
-        msg = _fallback_personal_message(dream, dream.user)
-
-    # Enregistre la phrase du jour dans la colonne 'phrase'
-    dream.phrase = phrase_du_jour or ""
-    dream.phrase_date = timezone.localdate()
-
-    # Enregistre uniquement le message personnalisé dans la colonne
-    # 'personal_phrase'
-    dream.personal_phrase = msg or ""
-    dream.personal_phrase_date = timezone.localdate()
-
-    dream.save(
-        update_fields=["phrase",
-                       "personal_phrase",
-                       "personal_phrase_date",
-                       "updated_at",
-                       "phrase_date"]
-    )
-    return dream.personal_phrase
