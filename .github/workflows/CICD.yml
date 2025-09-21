@@ -40,7 +40,7 @@ jobs:
     - name: Run unit tests
       run: |
         source venv/bin/activate
-        python dream_bridge/manage.py test
+        python ./dream_bridge/manage.py test ./dream_bridge/dream_bridge_app/
 
     - name: Lint with Flake8
       run: |
