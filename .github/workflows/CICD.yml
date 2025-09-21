@@ -37,7 +37,7 @@ jobs:
       run: |
         source venv/bin/activate
         pip install flake8
-        flake8 dream_bridge --exclude=migrations
+        flake8 --exclude=migrations
 
   deploy:
     needs: build
