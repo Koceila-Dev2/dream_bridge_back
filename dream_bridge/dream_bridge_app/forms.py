@@ -27,7 +27,9 @@ class DreamForm(forms.Form):
         # (Optionnel) Petite validation : taille max 50 Mo
         max_mb = 50
         if f.size > max_mb * 1024 * 1024:
-            raise forms.ValidationError(f"Le fichier audio dépasse {max_mb} Mo.")
+            raise forms.ValidationError(
+                f"Le fichier audio dépasse {max_mb} Mo."
+            )
         return f
 
 
@@ -65,5 +67,7 @@ class ProfileForm(forms.ModelForm):
             "believes_in_astrology": "Je crois à l’astrologie",
         }
         widgets = {
-            "believes_in_astrology": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "believes_in_astrology": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
         }

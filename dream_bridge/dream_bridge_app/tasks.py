@@ -2,6 +2,7 @@ import os
 from celery import shared_task
 from .services import orchestrate_dream_generation
 
+
 # bind=True permet d'accéder à l'instance de la tâche (self)
 @shared_task
 def process_dream_audio_task(dream_id: str, temp_audio_path: str):

@@ -52,7 +52,8 @@ def dream_create_view(request):
             dream.save(update_fields=[ "phrase", "phrase_date"])
             process_dream_audio_task.delay(str(dream.id), temp_path)
             return redirect(
-                reverse('dream_bridge_app:dream-status', kwargs={'dream_id': dream.id})
+                reverse('dream_bridge_app:dream-status',
+                        kwargs={'dream_id': dream.id})
             )
     else:
         form = DreamForm()
@@ -66,7 +67,8 @@ def dream_create_view(request):
 
 @login_required
 def dashboard(request):
-    """Affiche la phrase/horoscope du jour et l’enregistre à CHAQUE affichage."""
+    """Affiche la phrase/horoscope du jour et
+    l’enregistre à CHAQUE affichage."""
     daily_message = get_daily_message(request.user.id)
     
     return render(
@@ -129,7 +131,8 @@ def dream_status_view(request, dream_id):
     dream = get_object_or_404(Dream, id=dream_id, user=request.user)
 
     # Si le rêve n'est pas terminé, afficher l'écran de chargement
-    if dream.status in [Dream.DreamStatus.PENDING, Dream.DreamStatus.PROCESSING]:
+    if dream.status in [Dream.DreamStatus.PENDING,
+                        Dream.DreamStatus.PROCESSING]:
         # Message générique pour l'attente
         daily_message = get_daily_message(request.user.id)
         check_url = reverse(
@@ -145,9 +148,7 @@ def dream_status_view(request, dream_id):
             }
         )
 
-    # Si le rêve est terminé ou a échoué, afficher les détails
-    # Ceci est la destination finale après le chargement ou pour un accès direct depuis la galerie
-    daily_message = dream.personal_phrase 
+    daily_message = dream.personal_phrase or dream.phrase
     created_at_local = timezone.localtime(dream.created_at)
     emotion_label = (
         dream.get_emotion_display()
@@ -166,6 +167,7 @@ def dream_status_view(request, dream_id):
         }
     )
 
+
 @login_required
 def check_dream_status_api(request, dream_id):
     """Retourne le statut d'un rêve au format JSON."""
@@ -182,6 +184,7 @@ def check_dream_status_api(request, dream_id):
     except Dream.DoesNotExist:
         return JsonResponse({'status': 'NOT_FOUND'}, status=404)
 
+
 @login_required
 def report(request):
     user = request.user
@@ -195,10 +198,10 @@ def report(request):
     freq = dream_frequency(user, period, emotion=selected_emotion)
     ed = emotion_distribution(user, period, emotion=selected_emotion)
 
-    # Nouvelle métrique : longueur moyenne des transcriptions 
+    # Nouvelle métrique : longueur moyenne des transcriptions
     transcription_data = get_transcription_trend(
-        user, 
-        period, 
+        user,
+        period,
         emotion=selected_emotion
         )
 
@@ -217,6 +220,7 @@ def report(request):
         "dream_bridge_app/dashboard.html",
         context,
     )
+
 
 @login_required
 def generate_personal_message_view(request, dream_id):
@@ -237,8 +241,8 @@ def generate_personal_message_view(request, dream_id):
 # PAGE PROFIL UTILISATEUR
 # =========================
 
-@login_required
 
+@login_required
 def profile_view(request):
     """
     Affiche les infos du user + profil (édition limitée).

@@ -12,10 +12,14 @@ urlpatterns = [
     # Inclure les URLs de notre application dream_bridge_app
     path('', include('dream_bridge_app.urls')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
-] 
+]
 
 if settings.DEBUG:
     # On dit à Django d'ajouter une nouvelle règle :
-    # "Pour toute URL qui commence par MEDIA_URL, va chercher le fichier correspondant
+    # "Pour toute URL qui commence par MEDIA_URL,
+    # va chercher le fichier correspondant
     # dans le dossier MEDIA_ROOT."
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
