@@ -1,60 +1,284 @@
 # dream_bridge_app/views.py
 import tempfile
 import uuid
-from django.shortcuts import render, redirect
+import json
+
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
 from .models import Dream
-from .forms import DreamForm
-from .tasks import process_dream_audio_task  
-from django.contrib.auth.decorators import login_required 
+from .forms import DreamForm, UserForm, ProfileForm
+from .tasks import process_dream_audio_task
+from .metrics_dashboard import (
+    emotions_disponible,
+    get_dreams_in_period,
+    dream_frequency,
+    emotion_distribution,
+    get_transcription_trend,
+)
+from .services import (
+    get_daily_message,
+    generate_personal_message_for_dream,
+)
+
+from accounts.models import UserProfile
+
+
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('dream_bridge_app:accueil')
+    return render(request, 'dream_bridge_app/home.html')
 
 
 @login_required
 def dream_create_view(request):
-    """
-    Gère l'affichage du formulaire (GET) et son traitement (POST).
-    """
     if request.method == 'POST':
-        # Instancier le formulaire avec les données POST et les fichiers
         form = DreamForm(request.POST, request.FILES)
-        
-        # Vérifier si le formulaire est valide (ex: le fichier est bien présent)
         if form.is_valid():
             uploaded_file = request.FILES['audio']
-            
-            # --- Implémentation du pattern "Fichier Transitoire" ---
-            # 1. Créer un chemin de fichier temporaire unique
             temp_dir = tempfile.gettempdir()
             temp_filename = f"{uuid.uuid4()}_{uploaded_file.name}"
             temp_path = f"{temp_dir}/{temp_filename}"
-            
-            # 2. Écrire le contenu du fichier uploadé dans ce fichier temporaire
             with open(temp_path, 'wb+') as temp_f:
                 for chunk in uploaded_file.chunks():
                     temp_f.write(chunk)
-            
-            # 3. Créer l'objet Dream dans la BDD (statut PENDING par défaut)
-            dream = Dream.objects.create(user=request.user) 
-            
-            # 4. Lancer la tâche de fond Celery
-            process_dream_audio_task.delay(dream.id, temp_path)
-            
-            # 5. Rediriger l'utilisateur vers la page de statut
-            return redirect(reverse('dream-status', kwargs={'dream_id': dream.id}))
+
+            dream = Dream.objects.create(user=request.user)
+            dream.phrase = get_daily_message(request.user.id)
+            dream.phrase_date = timezone.localdate()
+            dream.save(update_fields=["phrase", "phrase_date"])
+            process_dream_audio_task.delay(str(dream.id), temp_path)
+            return redirect(
+                reverse('dream_bridge_app:dream-status',
+                        kwargs={'dream_id': dream.id})
+            )
     else:
-        # Si c'est une requête GET, créer un formulaire vide
         form = DreamForm()
 
-    # Rendre le template en lui passant le formulaire dans le contexte
-    return render(request, 'dream_bridge_app/home.html', {'form': form})
+    return render(
+        request,
+        'dream_bridge_app/narrate.html',
+        {'form': form},
+    )
 
+
+@login_required
+def dashboard(request):
+    """Affiche la phrase/horoscope du jour et
+    l’enregistre à CHAQUE affichage."""
+    daily_message = get_daily_message(request.user.id)
+    return render(
+        request,
+        'dream_bridge_app/accueil.html',
+        {
+            'daily_message': daily_message,
+        }
+    )
+
+
+@login_required
+def galerie_filtree(request):
+    emotion_filtreedate_filtree = request.GET.get('emotion')
+    date_filtree = request.GET.get('created_at')
+    images = Dream.objects.filter(
+        user_id=request.user.id,
+        status='COMPLETED',
+        generated_image__isnull=False,
+        phrase__isnull=False
+    ).order_by('-created_at')
+
+    if emotion_filtreedate_filtree and emotion_filtreedate_filtree != "all":
+        images = images.filter(emotion=emotion_filtreedate_filtree)
+
+    if date_filtree:
+        images = images.filter(created_at__date=date_filtree)
+
+    emotions_disponibles = (
+        Dream.objects
+        .filter(user=request.user)
+        .values_list('emotion', flat=True)
+        .distinct()
+        .order_by('emotion')
+    )
+
+    return render(
+        request,
+        'dream_bridge_app/galerie.html',
+        {
+            'images': images,
+            'emotions': emotions_disponibles,
+            'selected_emotion': emotion_filtreedate_filtree,
+            'selected_date': date_filtree,
+        },
+    )
+
+
+@login_required
+def library(request):
+    return render(
+        request,
+        'dream_bridge_app/library.html',
+    )
+
+
+@login_required
 def dream_status_view(request, dream_id):
-    """
-    Affiche le statut d'un rêve. (Assure-toi que ce template existe aussi)
-    """
-    try:
-        dream = Dream.objects.get(id=dream_id)
-    except Dream.DoesNotExist:
-        return redirect('home')
+    """Affiche le statut d’un rêve et ses détails si terminé."""
+    dream = get_object_or_404(Dream, id=dream_id, user=request.user)
 
-    return render(request, 'dream_bridge_app/dream_status.html', {'dream': dream})
+    # Si le rêve n'est pas terminé, afficher l'écran de chargement
+    if dream.status in [Dream.DreamStatus.PENDING,
+                        Dream.DreamStatus.PROCESSING]:
+        # Message générique pour l'attente
+        daily_message = get_daily_message(request.user.id)
+        check_url = reverse(
+            'dream_bridge_app:check-dream-status-api',
+            kwargs={'dream_id': dream.id}
+        )
+        return render(
+            request,
+            'dream_bridge_app/waiting_screen.html',
+            {
+                'daily_message': daily_message,
+                'check_url': check_url,
+            }
+        )
+    daily_message = dream.personal_phrase
+    created_at_local = timezone.localtime(dream.created_at)
+    emotion_label = (
+        dream.get_emotion_display()
+        if hasattr(dream, 'get_emotion_display')
+        else dream.emotion or "—"
+    )
+
+    return render(
+        request,
+        'dream_bridge_app/dream_status.html',
+        {
+            'dream': dream,
+            'daily_message': daily_message,
+            'created_at_local': created_at_local,
+            'emotion_label': emotion_label,
+        }
+    )
+
+
+@login_required
+def check_dream_status_api(request, dream_id):
+    """Retourne le statut d'un rêve au format JSON."""
+    try:
+        dream = Dream.objects.get(id=dream_id, user=request.user)
+        # L'URL de redirection est maintenant toujours la même
+        status_url = reverse(
+            'dream_bridge_app:dream-status',
+            kwargs={'dream_id': dream.id},
+        )
+        return JsonResponse(
+            {'status': dream.status, 'status_url': status_url}
+        )
+    except Dream.DoesNotExist:
+        return JsonResponse({'status': 'NOT_FOUND'}, status=404)
+
+
+@login_required
+def report(request):
+    user = request.user
+    period = request.GET.get("period", "7d")
+    selected_emotion = request.GET.get("emotion", "all")
+
+    # Rêves filtrés
+    dreams = get_dreams_in_period(user, period, emotion=selected_emotion)
+
+    td = dreams.count()
+    freq = dream_frequency(user, period, emotion=selected_emotion)
+    ed = emotion_distribution(user, period, emotion=selected_emotion)
+
+    # Nouvelle métrique : longueur moyenne des transcriptions
+    transcription_data = get_transcription_trend(
+        user,
+        period,
+        emotion=selected_emotion
+        )
+
+    context = {
+        "total_dreams": td,
+        "dream_frequency": freq,
+        "emotion_distribution": json.dumps(ed),
+        "transcription_trend": json.dumps(transcription_data),
+        "period": period,
+        "emotions": list(emotions_disponible(user)),
+        "selected_emotion": selected_emotion,
+    }
+
+    return render(
+        request,
+        "dream_bridge_app/dashboard.html",
+        context,
+    )
+
+
+@login_required
+def generate_personal_message_view(request, dream_id):
+    """Bouton “Générer / Régénérer” depuis la galerie."""
+    if request.method != "POST":
+        return HttpResponseBadRequest("Méthode non autorisée.")
+
+    dream = get_object_or_404(Dream, id=dream_id, user=request.user)
+    try:
+        generate_personal_message_for_dream(str(dream.id), force=True)
+        messages.success(request, "Message personnalisé mis à jour.")
+    except Exception as e:
+        messages.error(request, f"Échec de la génération : {e}")
+
+    return redirect('dream_bridge_app:galerie')
+
+# =========================
+# PAGE PROFIL UTILISATEUR
+# =========================
+
+
+@login_required
+def profile_view(request):
+    """
+    Affiche les infos du user + profil (édition limitée).
+    - Modifiables: first_name, last_name, email, believes_in_astrology
+    - Non modifiables mais affichées: birth_date, zodiac_sign
+    """
+    # Assure-toi qu’un profil existe (si pas de signal post_save)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(request.POST, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            # Le ProfileForm ne touche qu'à believes_in_astrology
+            profile_form.save()
+            messages.success(request, "Profil mis à jour.")
+            return redirect('dream_bridge_app:profile')
+        else:
+            messages.error(
+                request, "Merci de corriger les erreurs du formulaire."
+                )
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = ProfileForm(instance=profile)
+    # Valeurs read-only à afficher
+    read_only = {
+        "birth_date": profile.birth_date,
+        "zodiac_sign": profile.zodiac_sign_text,
+        }
+    return render(
+        request,
+        "dream_bridge_app/profile.html",
+        {
+            "user_form": user_form,
+            "profile_form": profile_form,
+            "read_only": read_only,
+        }
+    )

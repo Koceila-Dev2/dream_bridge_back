@@ -1,0 +1,176 @@
+/* static/css/home.css */
+
+/* --- Importation de la typographie --- */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Poppins:wght@300;400;600&display=swap');
+
+/* --- Variables de couleur --- */
+:root {
+    --background-dark: #070212; /* Encore plus sombre pour la profondeur */
+    --primary-glow: #a955c3;
+    --secondary-glow: #f39c12;
+    --text-primary: #f0e6ff;
+    --text-secondary: #a09cb0;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Fond "Aurora" animé --- */
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2, #a955c3, #f39c12);
+    background-size: 400% 400%;
+    background-color: var(--background-dark);
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-primary);
+    animation: animate-aurora 20s ease infinite;
+}
+
+@keyframes animate-aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- Typographie Générale --- */
+h1, h2, h3, h4, h5 {
+    font-family: 'Lora', serif;
+    color: white;
+    font-weight: 600;
+}
+
+/* --- Section Héros Immersive --- */
+.hero-section {
+    padding: 8rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-section h1 {
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    text-shadow: 0 0 20px var(--primary-glow);
+    margin-bottom: 1rem;
+}
+
+.hero-section .lead {
+    font-size: 1.25rem;
+    max-width: 600px;
+    margin: 0 auto 2.5rem auto;
+    color: var(--text-secondary);
+}
+
+/* --- Le Bento Grid --- */
+.bento-grid-section {
+    padding: 4rem 0;
+}
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(200px, auto);
+    gap: 1.5rem;
+}
+
+.bento-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem; /* Bords plus arrondis */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 1.5rem 2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    position: relative;
+}
+
+.bento-item:hover {
+    transform: scale(1.03);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 30px 0 var(--primary-glow);
+}
+
+/* Tailles et positions des éléments de la grille */
+.bento-item.large-visual {
+    grid-column: span 2;
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Texte en bas */
+}
+
+.bento-item.feature {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-item .bento-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-glow);
+}
+
+.bento-item h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.bento-item p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Style spécifique pour la carte visuelle */
+.large-visual .visual-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: all 0.5s ease;
+    border-radius: 1.5rem;
+}
+
+.large-visual:hover .visual-background {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.large-visual .content {
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 1.5rem;
+    margin: -1.5rem -2rem; /* Pour couvrir tout le bas de la carte */
+    border-radius: 0 0 1.5rem 1.5rem;
+}
+
+/* Animations d'apparition */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Section CTA finale --- */
+.cta-section {
+    border-radius: 1.5rem;
+    background: none;
+    padding: 6rem 2rem;
+    text-align: center;
+}

@@ -1,0 +1,16 @@
+Tu écris un court « message du jour » personnalisé, en français, pour {username}.
+
+DONNÉES
+- Transcription (brute) : {dream_transcription}
+- Ambiance / prompt d’image : {image_prompt}
+- Émotion dominante : {dominant_emotion}
+- Croit en l’astrologie : {believes_in_astrology}
+- Signe (si connu) : {zodiac_sign}
+- Prénom : {first_name}
+
+CONTRAINTES
+-1 à 2 phrases (≤ 60 mots), tutoiement, ton chaleureux et concret.
+-Fais résonner explicitement l’émotion dominante.
+-Si Croit en l’astrologie = True ET Signe ≠ vide, ajoute UNE référence sobre au signe (sans cliché, pas d’horoscope).Sinon, ne parle PAS d’astrologie.
+-Termine par une micro-action réalisable aujourd’hui.
+-Pas de liste, pas d’emoji, pas de titre. Sortie : le message uniquement.

@@ -1,0 +1,126 @@
+{% extends "dream_bridge_app/base.html" %}
+{% block title %}Dashboard des rêves{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- Sélecteur de période -->
+  <div class="mb-4 d-flex flex-wrap gap-2 justify-content-center">
+    <a href="?period=3d" class="btn btn-dream {% if period == '3d' %}active{% endif %}">Derniers 3 jours</a>
+    <a href="?period=7d" class="btn btn-dream {% if period == '7d' %}active{% endif %}">Derniers 7 jours</a>
+    <a href="?period=1m" class="btn btn-dream {% if period == '1m' %}active{% endif %}">Dernier mois</a>
+    <a href="?period=all" class="btn btn-dream {% if period == 'all' %}active{% endif %}">Depuis le début</a>
+  </div>
+</div>
+
+<!-- Filtre par émotion -->
+<div class="container my-4 d-flex justify-content-center">
+  <form method="get" class="card card-dream p-3 shadow-lg d-flex flex-row align-items-center gap-3" style="max-width:500px; margin:auto; background:rgba(30,30,60,0.95); border-radius:18px;">
+    <input type="hidden" name="period" value="{{ period }}">
+    <label for="emotion" class="mb-0" style="color:#fff; font-weight:600; font-size:1.1rem;">Filtrer par émotion :</label>
+    <select name="emotion" id="emotion" onchange="this.form.submit()" class="form-select form-select-sm" style="width:140px; margin-left:10px; background:#23234a; color:#fff; border:none; border-radius:8px; font-weight:500;">
+      <option value="all" {% if selected_emotion == 'all' %}selected{% endif %}>Toutes</option>
+      {% for emo in emotions %}
+        <option value="{{ emo }}" {% if emo == selected_emotion %}selected{% endif %}>{{ emo }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<!-- Statistiques globales -->
+<div class="row g-4 mb-4 justify-content-center">
+  <div class="col-md-5 d-flex justify-content-center">
+    <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
+      <h5>Total de vos rêves</h5>
+      <p class="fs-3 fw-bold">{{ total_dreams }}</p>
+    </div>
+  </div>
+  <div class="col-md-5 d-flex justify-content-center">
+    <div class="card card-dream p-4 shadow-lg text-center h-100" style="min-width:320px; max-width:420px; margin:auto;">
+      <h5>Taux de jours où vous rêvez</h5>
+      <p class="fs-3 fw-bold">{{ dream_frequency|floatformat:2 }}%</p>
+    </div>
+  </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row g-4 justify-content-center">
+  <!-- Pie chart : Répartition des émotions -->
+  <div class="col-md-5 d-flex justify-content-center">
+    <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
+      <h4 class="mb-3 text-center">Répartition de vos émotions</h4>
+      <canvas id="emotionChart" height="300"></canvas>
+    </div>
+  </div>
+
+  <!-- Line chart : Longueur moyenne des récits -->
+  <div class="col-md-5 d-flex justify-content-center">
+    <div class="card card-dream p-4 shadow-lg h-100" style="min-width:320px; max-width:420px; margin:auto;">
+      <h4 class="mb-3 text-center">Longueur moyenne de vos récits</h4>
+      <canvas id="transcriptionChart" height="300"></canvas>
+      <div id="transcriptionEmpty" style="display:none; text-align:center; color:#fff; font-size:1.1rem; margin-top:40px;">
+        Aucune donnée pour la période sélectionnée.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartColors = ['#FF6384', '#36A2EB', '#FFCE56', '#8AFF33', '#FF33EC', '#33FFF9'];
+
+// ==== Répartition des émotions ====
+const emotionData = JSON.parse('{{ emotion_distribution|escapejs }}');
+new Chart(document.getElementById('emotionChart').getContext('2d'), {
+  type: 'pie',
+  data: {
+    labels: Object.keys(emotionData),
+    datasets: [{ data: Object.values(emotionData), backgroundColor: chartColors }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { color:'#fff', font: { size:14, weight:'bold' } } } }
+  }
+});
+
+// ==== Longueur moyenne des récits ====
+const transcriptionData = JSON.parse('{{ transcription_trend|escapejs }}');
+const ctxTranscription = document.getElementById('transcriptionChart').getContext('2d');
+const transcriptionEmpty = document.getElementById('transcriptionEmpty');
+
+let labels = [];
+let data = [];
+
+if (transcriptionData && transcriptionData.length > 0) {
+  labels = transcriptionData.map(item => item.date);
+  data = transcriptionData.map(item => item.avg_length || 0);
+  transcriptionEmpty.style.display = 'none';
+} else {
+  transcriptionEmpty.style.display = 'block';
+}
+
+new Chart(ctxTranscription, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Longueur moyenne (nombre de caractères)',
+      data: data,
+      borderColor: '#36A2EB',
+      backgroundColor: 'rgba(54,162,235,0.2)',
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+      y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' }, beginAtZero: true }
+    }
+  }
+});
+</script>
+
+<div style="height:40px;"></div>
+{% endblock %}

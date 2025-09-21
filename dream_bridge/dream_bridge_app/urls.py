@@ -1,8 +1,28 @@
+# dream_bridge_app/urls.py
 from django.urls import path
-from .views import dream_create_view, dream_status_view
+from . import views
+
+app_name = "dream_bridge_app"
 
 urlpatterns = [
-    path('', dream_create_view, name='home'),
+    path("", views.home, name="home"),
+    path("accueil/", views.dashboard, name="accueil"),
+    path("narrate/", views.dream_create_view, name="narrate"),
+    path("dashboard/", views.report, name="dashboard"),
+    path("galerie/", views.galerie_filtree, name="galerie"),
 
-    path('dreams/<uuid:dream_id>/status/', dream_status_view, name='dream-status'),
+    # Détail d’un rêve
+    path(
+        "dreams/<uuid:dream_id>/status/",
+        views.dream_status_view,
+        name="dream-status",
+    ),
+    path(
+        "api/dreams/<uuid:dream_id>/status/",
+        views.check_dream_status_api,
+        name="check-dream-status-api",
+    ),
+
+
+    path("profile/", views.profile_view, name="profile"),
 ]

@@ -1,99 +1,174 @@
+{% load static %} 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>{% block title %}Dream Bridge{% endblock %}</title>
-    
+
+    <!-- Styles principaux -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'dream_bridge_app/waiting_screen.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <!-- Bootstrap 5 CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <style>
-        /* Toutes tes règles de style (body, particules, header, footer, etc.) restent ici */
-        * { margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        .floating-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .particle { position: absolute; width: 4px; height: 4px; background: rgba(255, 255, 255, 0.6); border-radius: 50%; animation: float 6s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; } 50% { transform: translateY(-20px) rotate(180deg); opacity: 1; } }
-        .content-wrapper { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; }
-        .header-section { text-align: center; padding: 4rem 0 2rem 0; }
-        .brand-title { font-size: 3.5rem; font-weight: 200; letter-spacing: 2px; margin-bottom: 1rem; text-shadow: 0 0 30px rgba(255, 255, 255, 0.3); }
-        .brand-subtitle { font-size: 1.2rem; font-weight: 300; opacity: 0.9; margin-bottom: 0; }
-        .main-content { flex: 1; display: flex; align-items: center; padding: 2rem 0; }
-        .process-section { padding: 3rem 0; }
-        .process-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 2.5rem 2rem; text-align: center; height: 100%; transition: transform 0.3s ease; }
-        .process-card:hover { transform: translateY(-5px); }
-        .process-icon { font-size: 2.5rem; margin-bottom: 1.5rem; opacity: 0.9; }
-        .process-title { font-size: 1.3rem; font-weight: 400; margin-bottom: 1rem; }
-        .process-description { font-size: 1rem; font-weight: 300; opacity: 0.85; line-height: 1.6; }
-        .footer-section { text-align: center; padding: 2rem 0; opacity: 0.7; font-size: 0.9rem; font-weight: 300; }
-        @media (max-width: 768px) { .brand-title { font-size: 2.5rem; } .process-card { margin-bottom: 2rem; } }
-        .fade-in-up { opacity: 0; transform: translateY(30px); animation: fadeInUp 1s forwards; }
-        .fade-in-up:nth-child(1) { animation-delay: 0.1s; } .fade-in-up:nth-child(2) { animation-delay: 0.3s; } .fade-in-up:nth-child(3) { animation-delay: 0.5s; }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        .depth-layer { position: relative; z-index: 2; }
-    </style>
+        .floating-particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+        .particle {
+            position: absolute; width: 4px; height: 4px;
+            background: rgba(255, 255, 255, 0.6); border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+        .content-wrapper {
+            flex: 1;
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column; justify-content: center;
+        }
 
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Dream Bridge</a>
-            <div class="d-flex">
-                {% if user.is_authenticated %}
-                <span class="navbar-text me-3">
-                    Bonjour, {{ user.username }}
-                </span>
-                <form action="{% url 'logout' %}" method="post" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-light">Déconnexion</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-light me-2">Connexion</a>
-                <a href="{% url 'signup' %}" class="btn btn-outline-light">Inscription</a>
-            {% endif %}
-            </div>
-        </div>
-    </nav>
+        /* ==== Card Dream Bridge ==== */
+        .card.card-dream {
+            background-color: rgba(79, 42, 145, 0.85) !important;
+            color: #ffffff !important;
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Hover effect cards */
+        .card.card-dream:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+        }
+
+        .card.card-dream h4,
+        .card.card-dream p,
+        .card.card-dream span {
+            color: #ffffff !important;
+        }
+
+        .card.card-dream canvas {
+            background-color: rgba(111, 66, 193, 0.2) !important;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .btn.btn-dream {
+            background-color: #6f42c1 !important;
+            color: #fff !important;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn.btn-dream:hover,
+        .btn.btn-dream:focus {
+            background-color: #5a32a3 !important;
+            color: #ffffff !important;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px);
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        footer a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+        footer a:hover {
+            color: #ddd;
+        }
+    </style>
 </head>
 <body>
-    <div class="floating-particles" id="particles"></div>
-    
-    
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: rgba(0,0,0,0.1); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.2);">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white" href="{% url 'dream_bridge_app:home' %}">🌙 Dream Bridge</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+      <ul class="navbar-nav me-auto">
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:home' %}">🏠 Accueil</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:narrate' %}">🎙️ Raconter</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:galerie' %}">📚 Bibliothèque</a></li>
+    <li class="nav-item"><a class="nav-link text-white" href="{% url 'dream_bridge_app:dashboard' %}">📊 Dashboard</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        {% if user.is_authenticated %}
+          <!-- <span class="me-3 text-white">👤 {{ user.username }}</span> -->
+           <a class="me-3 text-white text-decoration-none" href="{% url 'accounts:profile' %}">⚙️ Modifier le profil</a>
+            <a class="me-3 text-white text-decoration-none">👤 {{ user.username }}</a>
+          <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm">Déconnexion</a>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-light btn-sm me-2">Connexion</a>
+          <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light btn-sm">Inscription</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+{% load static %}
+<div class="floating-particles" id="particles"></div>
+<div class="content-wrapper">
+    {% block content %}{% endblock %}
+</div>
 
-        {% block content %}
-        {% endblock %}
+<footer>
+    <p>© 2025 Dream Bridge — Tous droits réservés</p>
+    <p>
+        <a href="#">Mentions légales</a> | 
+        <a href="#">Confidentialité</a> | 
+        <a href="#">Contact</a>
+    </p>
+</footer>
 
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Le script pour les particules reste ici car il est lié à la base
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const numParticles = 50;
-            for (let i = 0; i < numParticles; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 6 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
-                particlesContainer.appendChild(particle);
-            }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            p.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            container.appendChild(p);
         }
-        document.addEventListener('DOMContentLoaded', function() { createParticles(); });
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const parallax = document.querySelector('.floating-particles');
-            parallax.style.transform = 'translateY(' + (scrolled * 0.5) + 'px)';
-        });
-    </script>
-
-    {% block scripts %}{% endblock %}
-
+    }
+    document.addEventListener('DOMContentLoaded', createParticles);
+    window.addEventListener('scroll', () => {
+        document.querySelector('.floating-particles').style.transform =
+            'translateY(' + (window.pageYOffset * 0.5) + 'px)';
+    });
+</script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

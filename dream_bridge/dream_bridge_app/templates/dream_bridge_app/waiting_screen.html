@@ -1,0 +1,38 @@
+{% extends "dream_bridge_app/base.html" %}
+{% load static %}
+
+{% block title %}Interprétation en cours... - Dream Bridge{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-white">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <div id="loading-screen" class="card card-dream shadow-lg p-4 text-center" data-check-url="{{ check_url }}">
+        <div class="mystic-loader mb-3">
+          <div class="moon"></div>
+          <div class="star"></div>
+          <div class="star twinkle"></div>
+          <div class="star"></div>
+        </div>
+        <h3 class="waiting-title mb-2">Les astres interprètent votre rêve…</h3>
+        <p id="loading-message" class="mb-3">
+          Nos algorithmes percent le mystère de votre subconscient…
+        </p>
+        <div class="card card-dream mt-4 p-3 text-start">
+          <div class="d-flex align-items-center mb-2">
+            <div class="me-2">🌟</div>
+            <h5 class="m-0">Message du Jour</h5>
+          </div>
+          <p class="mb-0" style="opacity:.95; white-space:pre-line;">{{ daily_message }}</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'dream_bridge_app/waiting_screen.js' %}"></script>
+{% endblock %}

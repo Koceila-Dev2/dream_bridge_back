@@ -1,0 +1,44 @@
+{% extends "dream_bridge_app/base.html" %}
+{% block title %}Tableau de bord - Dream Bridge{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
+  <div class="text-center mb-5">
+    <h1 class="display-5 text-white">Bienvenue dans ton espace de rêves</h1>
+    <p class="lead text-white">Explore, raconte et revit tes plus beaux songes</p>
+  </div>
+
+  {% if daily_message %}
+  <div class="row w-100 justify-content-center mb-4">
+    <div class="col-md-8">
+      <div class="card card-dream shadow-lg p-4">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fs-5">✨ Phrase du jour</span>
+          <small class="text-white-50">{% now "d/m/Y" %}</small>
+        </div>
+        <div class="mt-2">{{ daily_message|linebreaksbr }}</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row w-100 justify-content-center">
+    <div class="col-md-4 mb-4">
+      <div class="card card-dream text-center p-4">
+        <div class="fs-2 mb-2">🎙️</div>
+        <h4>Raconter un rêve</h4>
+        <p>Visualisez vos plus beaux rêves.</p>
+        <a href="{% url 'dream_bridge_app:narrate' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Commencer</a>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card card-dream text-center p-4">
+        <div class="fs-2 mb-2">📚</div>
+        <h4>Ma bibliothèque</h4>
+        <p>Accédez à tous vos rêves enregistrés et illustrés.</p>
+        <a href="{% url 'dream_bridge_app:galerie' %}" class="btn text-white mt-2" style="background-color: #6f42c1;">Voir</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
