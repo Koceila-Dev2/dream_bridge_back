@@ -46,8 +46,10 @@ def dream_create_view(request):
             with open(temp_path, 'wb+') as temp_f:
                 for chunk in uploaded_file.chunks():
                     temp_f.write(chunk)
-
             dream = Dream.objects.create(user=request.user)
+            dream.phrase = get_daily_message(request.user.id)
+            dream.phrase_date = timezone.localdate()
+            dream.save(update_fields=[ "phrase", "phrase_date"])
             process_dream_audio_task.delay(str(dream.id), temp_path)
             return redirect(
                 reverse('dream_bridge_app:dream-status',
@@ -68,7 +70,7 @@ def dashboard(request):
     """Affiche la phrase/horoscope du jour et
     l’enregistre à CHAQUE affichage."""
     daily_message = get_daily_message(request.user.id)
-
+    
     return render(
         request,
         'dream_bridge_app/accueil.html',
@@ -83,6 +85,7 @@ def galerie_filtree(request):
     emotion_filtreedate_filtree = request.GET.get('emotion')
     date_filtree = request.GET.get('created_at')
     images = Dream.objects.filter(
+        user_id=request.user.id ,
         status='COMPLETED',
         generated_image__isnull=False,
         phrase__isnull=False
@@ -145,9 +148,6 @@ def dream_status_view(request, dream_id):
             }
         )
 
-    # Si le rêve est terminé ou a échoué, afficher les détails
-    # Ceci est la destination finale après le chargement ou
-    # pour un accès direct depuis la galerie
     daily_message = dream.personal_phrase or dream.phrase
     created_at_local = timezone.localtime(dream.created_at)
     emotion_label = (
