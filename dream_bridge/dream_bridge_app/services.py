@@ -3,28 +3,20 @@ import pickle
 import json
 import time
 import requests
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.utils import timezone
-
 from groq import Groq
 from mistralai import Mistral
 from mistralai.models import ToolFileChunk
-
 from deep_translator import GoogleTranslator
-
 from .models import Dream
 
 User = get_user_model()
 MISTRAL_API_KEY = settings.MISTRAL_API_KEY
-
-# ----------------------- Prompts & fichiers -----------------------
-
 PROMPTS_DIR = os.path.join(settings.BASE_DIR, "dream_bridge_app", "prompts")
 PERSONAL_MSG_PROMPT_PATH = os.path.join(PROMPTS_DIR, "personal_daily_message.txt")
-
 
 def get_personal_message_template() -> str:
     """
@@ -35,7 +27,6 @@ def get_personal_message_template() -> str:
         with open(PERSONAL_MSG_PROMPT_PATH, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        # ✔ Fallback étoffé : émotion + nuance astro + micro-action
         return (
             "Tu écris un « message du jour » personnalisé, en français, pour {username}.\n\n"
             "CONTEXTE RÊVE\n"

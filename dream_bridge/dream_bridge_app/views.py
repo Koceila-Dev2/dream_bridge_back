@@ -81,6 +81,7 @@ def galerie_filtree(request):
     emotion_filtreedate_filtree = request.GET.get('emotion')
     date_filtree = request.GET.get('created_at')
     images = Dream.objects.filter(
+        user_id=request.user.id ,
         status='COMPLETED',
         generated_image__isnull=False,
         phrase__isnull=False
