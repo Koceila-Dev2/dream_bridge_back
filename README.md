@@ -1,8 +1,12 @@
-# Dream Bridge - Lancer le projet Django
+📘 README du dépôt
+# Dream Bridge – Synthétiseur de rêves
 
-L’application est également disponible sur notre VPS à cette adresse : *“Insérer le lien”*
+## Description
+Dream Bridge est une application web qui transforme vos rêves racontés à voix haute en **images générées par IA**, tout en analysant leur **dimension émotionnelle**.  
+Elle permet aussi de suivre l’évolution de son humeur grâce à un **dashboard interactif**.
 
----
+Projet réalisé dans le cadre du Bachelor Data & IA – HETIC.
+
 
 ## 1. Cloner le dépôt
 - Dépôt : [https://github.com/Koceila-Dev2/dream_bridge_back](https://github.com/Koceila-Dev2/dream_bridge_back)
