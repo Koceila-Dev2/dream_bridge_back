@@ -14,7 +14,7 @@ DEBUG = True
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost','51.77.151.108',]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '51.77.151.108']
 
 # Origines de confiance (CSRF)
 CSRF_TRUSTED_ORIGINS = [
