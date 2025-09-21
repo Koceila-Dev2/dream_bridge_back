@@ -79,15 +79,15 @@ def get_personal_message_template() -> str:
             "Sortie : uniquement le message.\n"
         )
 
-
-def read_context_file(filename="context.txt"):
-    """Lit un fichier de contexte depuis le dossier de l'application."""
-    path = os.path.join(settings.BASE_DIR, "dream_bridge_app", filename)
-    try:
-        with open(path, "r", encoding="utf-8") as file:
-            return file.read()
-    except FileNotFoundError:
-        return ""
+# pas utilisé pour l'instant
+# def read_context_file(filename="context.txt"):
+#     """Lit un fichier de contexte depuis le dossier de l'application."""
+#     path = os.path.join(settings.BASE_DIR, "dream_bridge_app", filename)
+#     try:
+#         with open(path, "r", encoding="utf-8") as file:
+#             return file.read()
+#     except FileNotFoundError:
+#         return ""
 
 
 def build_personal_message_prompt(dream: Dream, user) -> str:
