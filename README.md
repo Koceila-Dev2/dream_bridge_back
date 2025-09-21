@@ -8,6 +8,25 @@ Elle permet aussi de suivre l’évolution de son humeur grâce à un **dashboar
 Projet réalisé dans le cadre du Bachelor Data & IA – HETIC.
 
 
+
+## Fonctionnalités
+- Authentification et espace personnel
+- Enregistrement audio + transcription automatique (Whisper)
+- Détection émotionnelle (positif, négatif, neutre)
+- Génération d’images via IA (Mistral)
+- Dashboard avec filtres (date, émotions, fréquence)
+- Phrases du jour personnalisées (Horoscope ou ZenQuotes)
+- Gestion des tâches asynchrones (Celery + Redis)
+
+## Stack technique
+- **Backend** : Django (Python 3.12)
+- **Frontend** : HTML/CSS + Bootstrap + JavaScript
+- **BDD** : SQLite (dev) / PostgreSQL (prod)
+- **Infra** : VPS OVHcloud (4 vCores / 8Go RAM)
+- **APIs** : Whisper, Llama3 (Grok), Gemini, Horoscope API, ZenQuotes
+- **Asynchrone** : Celery + Redis
+
+
 ## 1. Cloner le dépôt
 - Dépôt : [https://github.com/Koceila-Dev2/dream_bridge_back](https://github.com/Koceila-Dev2/dream_bridge_back)
 
