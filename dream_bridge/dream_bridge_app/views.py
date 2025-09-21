@@ -147,9 +147,7 @@ def dream_status_view(request, dream_id):
                 'check_url': check_url,
             }
         )
-
-    
-    daily_message = dream.personal_phrase 
+    daily_message = dream.personal_phrase
     created_at_local = timezone.localtime(dream.created_at)
     emotion_label = (
         dream.get_emotion_display()

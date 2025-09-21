@@ -7,12 +7,12 @@ from unittest.mock import patch
 from datetime import timedelta
 from django.utils import timezone
 
-from .services import orchestrate_dream_generation, get_emotion_from_text
-from .models import Dream
-from .metrics_dashboard import total_dreams
+from dream_bridge_app.services import orchestrate_dream_generation, get_emotion_from_text
+from dream_bridge_app.models import Dream
+from dream_bridge_app.metrics_dashboard import total_dreams
 from accounts.models import UserProfile
-from .forms import DreamForm
-from .tasks import process_dream_audio_task
+from dream_bridge_app.forms import DreamForm
+from dream_bridge_app.tasks import process_dream_audio_task
 
 
 # --- Catégorie 9 : Edge cases pour DreamForm et Dream model ---
