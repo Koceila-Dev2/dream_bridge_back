@@ -6,8 +6,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch
 from datetime import timedelta
 from django.utils import timezone
-
-from dream_bridge_app.services import orchestrate_dream_generation, get_emotion_from_text
+from dream_bridge_app.services import (
+    orchestrate_dream_generation,
+    get_emotion_from_text
+)
 from dream_bridge_app.models import Dream
 from dream_bridge_app.metrics_dashboard import total_dreams
 from accounts.models import UserProfile

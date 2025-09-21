@@ -71,9 +71,17 @@ if [[ $CURRENT_PYTHON_VERSION != 3.11* ]]; then
         sudo add-apt-repository -y ppa:deadsnakes/ppa
         sudo apt update
         sudo apt install -y python3.11 python3.11-venv python3.11-dev python3.11-distutils
-        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-        sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 2
-        sudo update-alternatives --config python3
+        # Only register alternatives for interpreters that actually exist.
+        if [ -x "/usr/bin/python3.8" ]; then
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+        fi
+        if [ -x "/usr/bin/python3.11" ]; then
+            sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 2
+        fi
+        # Open the alternatives selection only if there is at least one candidate.
+        if update-alternatives --list python3 >/dev/null 2>&1; then
+            sudo update-alternatives --config python3
+        fi
     elif $IS_MAC; then
         if ! command -v brew &> /dev/null; then
             echo "Installation de Homebrew..."
