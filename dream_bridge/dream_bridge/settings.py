@@ -124,10 +124,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/home/ubuntu/dream_bridge_back/dream_bridge/static/'
 
-# ✅ Évite le warning W004 : n’ajoute le dossier global "static" que s’il existe
 STATIC_DIR = BASE_DIR / "static"
-STATICFILES_DIRS = [STATIC_DIR] if STATIC_DIR.exists() else []
-
+STATICFILES_DIRS = [
+    BASE_DIR / 'dream_bridge_app' / 'static'
+]
 # (Optionnel pour collectstatic en prod)
 # STATIC_ROOT = BASE_DIR / "staticfiles"
 
