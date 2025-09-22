@@ -23,7 +23,7 @@ Projet réalisé dans le cadre du Bachelor Data & IA – HETIC.
 - **Frontend** : HTML/CSS + Bootstrap + JavaScript
 - **BDD** : SQLite (dev) / PostgreSQL (prod)
 - **Infra** : VPS OVHcloud (4 vCores / 8Go RAM)
-- **APIs** : Whisper, Llama3 (Grok), Gemini, Horoscope API, ZenQuotes
+- **APIs** : Whisper, Llama3 (Grok),Mistral, Gemini, Horoscope API, ZenQuotes
 - **Asynchrone** : Celery + Redis
 
 
