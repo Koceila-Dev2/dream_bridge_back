@@ -122,6 +122,7 @@ USE_TZ = True
 
 # Fichiers statiques
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/ubuntu/dream_bridge_back/dream_bridge/static/'
 
 # ✅ Évite le warning W004 : n’ajoute le dossier global "static" que s’il existe
 STATIC_DIR = BASE_DIR / "static"
