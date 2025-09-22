@@ -68,7 +68,7 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT }}
         script: |
-          cd /home/ubuntu/CICD_TEST/dream_bridge
+          cd /home/ubuntu/dream_bridge_back/dream_bridge/dream_bridge
           git pull origin main
           source venv/bin/activate
           pip install -r dream_bridge/requirements.txt
