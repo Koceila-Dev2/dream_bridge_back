@@ -331,8 +331,6 @@ class DreamAppViewsTest(TestCase):
         response = self.client.get(reverse('dream_bridge_app:dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'dream_bridge_app/dashboard.html')
-        # Vérifie que les données calculées sont bien présentes dans
-        # le contexte du template
         self.assertIn('total_dreams', response.context)
         self.assertIn('emotion_distribution', response.context)
         self.assertEqual(response.context['total_dreams'], 2)

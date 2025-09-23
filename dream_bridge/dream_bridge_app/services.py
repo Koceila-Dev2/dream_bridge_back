@@ -1,9 +1,12 @@
 
+from io import BytesIO
 import os
 import pickle
 import json
+from google.genai import types
 import requests
 import logging
+import base64
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -344,6 +347,16 @@ def save_image_or_fallback(
     file_bytes = None
     image_name = f"dream_{dream_id}.png"
 
+    try:
+        for generated_image in response.generated_images:
+            img_byte_arr = BytesIO()
+            file_bytes = generated_image
+            logger.info(f"Image extraite avec succès pour le rêve  via Imagen.")
+            return image_name, file_bytes
+    except Exception as e:
+        logger.warning(f"Image extraction failed with imagen using gemini response: {e}")
+        file_bytes = None
+    # Récupérer les octets bruts depuis le buffer
     # Defensive extraction from Gemini response
     try:
         try:
@@ -351,7 +364,7 @@ def save_image_or_fallback(
             raw = getattr(part, "data", None) or getattr(part, "base64", None)
             if raw:
                 if isinstance(raw, str):
-                    import base64
+                    
                     try:
                         file_bytes = base64.b64decode(raw)
                     except Exception:
@@ -562,13 +575,21 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
 
             logger.debug(f"Prompt envoyé à Gemini : {prompt}")
             try:
+                response = client.models.generate_images(
+                    model='imagen-4.0-generate-001', 
+                    prompt=prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1, 
+                    )
+                )
+                
+            except Exception as e:
+                logger.warning(f"Erreur lors de l'appel à Imagen trying Gemini : {str(e)}")
                 response = client.models.generate_content(
                     model="models/gemini-2.5-flash-image-preview",
                     contents=prompt,
                 )
-            except Exception as e:
-                logger.error(f"Erreur lors de l'appel à Gemini : {str(e)}")
-                raise
+                
 
             logger.debug(f"Réponse brute de Gemini : {response}")
         try:
