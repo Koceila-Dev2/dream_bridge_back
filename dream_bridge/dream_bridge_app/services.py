@@ -348,9 +348,10 @@ def save_image_or_fallback(
     image_name = f"dream_{dream_id}.png"
 
     try:
-        for generated_image in response.generated_images:
-            img_byte_arr = BytesIO()
-            file_bytes = generated_image
+        for n, generated_image in enumerate(response.generated_images):
+            buffer = BytesIO()
+            generated_image.image.save(buffer, format='JPEG')
+            file_bytes = buffer.getvalue()
             logger.info(f"Image extraite avec succès pour le rêve  via Imagen.")
             return image_name, file_bytes
     except Exception as e:
@@ -385,7 +386,7 @@ def save_image_or_fallback(
                     mistral_client = Mistral(api_key=MISTRAL_API_KEY_IMAGE)
 
                 image_agent = mistral_client.beta.agents.create(
-                    model="mistral-medium-2505",
+                    model="mistral-large-latest",
                     name="Générateur d'images de rêves",
                     description=(
                         "Agent qui utilise un outil de génération "
@@ -576,11 +577,15 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             logger.debug(f"Prompt envoyé à Gemini : {prompt}")
             try:
                 response = client.models.generate_images(
-                    model='imagen-4.0-generate-001', 
+                    model='models/imagen-4.0-ultra-generate-001', 
                     prompt=prompt,
-                    config=types.GenerateImagesConfig(
-                        number_of_images=1, 
-                    )
+                    config=dict(
+                    number_of_images=2,
+                    output_mime_type="image/jpeg",
+                    person_generation="ALLOW_ADULT",
+                    aspect_ratio="1:1",
+                    image_size="1K",
+                )
                 )
                 
             except Exception as e:
