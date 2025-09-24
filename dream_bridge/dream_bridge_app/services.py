@@ -222,11 +222,11 @@ def generate_personal_message_for_dream(dream_id: str) -> str:
         else:
             try:
                 # Préparation du client Mistral
-                mistral_client = Mistral(api_key=MISTRAL_API_KEY)
+                mistral_client = Mistral(api_key=MISTRAL_API_KEY_IMAGE)
                 logger.info("Client Mistral initialisé avec succès.")
 
                 chat_response = mistral_client.chat.complete(
-                    model="mistral-large-latest",
+                    model="mistral-medium-latest",
                     messages=[
                         {"role": "system", "content": prompt},
                         {
@@ -301,13 +301,13 @@ def get_emotion_from_text(transcription: str) -> str:
     """Analyse la transcription pour déduire
     l'émotion principale via Mistral."""
     try:
-        mistral_client = Mistral(api_key=MISTRAL_API_KEY)
+        mistral_client = Mistral(api_key=MISTRAL_API_KEY_IMAGE)
         system_prompt = read_context_file("context_emotion.txt")
         if not system_prompt:
             return "neutre"
 
         chat_response = mistral_client.chat.complete(
-            model="mistral-large-latest",
+            model="mistral-medium-latest",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {
@@ -357,6 +357,11 @@ def save_image_or_fallback(
     except Exception as e:
         logger.warning(f"Image extraction failed with imagen using gemini response: {e}")
         file_bytes = None
+        response = client.models.generate_content(
+                    model="models/gemini-2.5-flash-image-preview",
+                    contents=prompt,
+                )
+
     # Récupérer les octets bruts depuis le buffer
     # Defensive extraction from Gemini response
     try:
@@ -386,7 +391,7 @@ def save_image_or_fallback(
                     mistral_client = Mistral(api_key=MISTRAL_API_KEY_IMAGE)
 
                 image_agent = mistral_client.beta.agents.create(
-                    model="mistral-large-latest",
+                    model="mistral-medium-latest",
                     name="Générateur d'images de rêves",
                     description=(
                         "Agent qui utilise un outil de génération "
@@ -575,27 +580,31 @@ def orchestrate_dream_generation(dream_id: str, audio_path: str) -> None:
             prompt = dream.image_prompt
 
             logger.debug(f"Prompt envoyé à Gemini : {prompt}")
-            try:
-                response = client.models.generate_images(
-                    model='models/imagen-4.0-ultra-generate-001', 
-                    prompt=prompt,
-                    config=dict(
-                    number_of_images=2,
-                    output_mime_type="image/jpeg",
-                    person_generation="ALLOW_ADULT",
-                    aspect_ratio="1:1",
-                    image_size="1K",
-                )
-                )
+            # try:
+            #     response = client.models.generate_images(
+            #         model='models/imagen-4.0-ultra-generate-001', 
+            #         prompt=prompt,
+            #         config=dict(
+            #         number_of_images=2,
+            #         output_mime_type="image/jpeg",
+            #         person_generation="ALLOW_ADULT",
+            #         aspect_ratio="1:1",
+            #         image_size="1K",
+            #     )
+            #     )
                 
-            except Exception as e:
-                logger.warning(f"Erreur lors de l'appel à Imagen trying Gemini : {str(e)}")
-                response = client.models.generate_content(
+            # except Exception as e:
+            #     logger.warning(f"Erreur lors de l'appel à Imagen trying Gemini : {str(e)}")
+            #     response = client.models.generate_content(
+            #         model="models/gemini-2.5-flash-image-preview",
+            #         contents=prompt,
+            #     )
+                
+            response = client.models.generate_content(
                     model="models/gemini-2.5-flash-image-preview",
                     contents=prompt,
                 )
                 
-
             logger.debug(f"Réponse brute de Gemini : {response}")
         try:
             image_name, file_bytes = save_image_or_fallback(

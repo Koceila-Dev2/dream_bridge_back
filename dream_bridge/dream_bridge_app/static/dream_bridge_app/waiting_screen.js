@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Configuration ---
     const checkUrl = loadingScreen.dataset.checkUrl;
-    const MIN_WAIT_TIME_MS = 10000; // 10 secondes (modifiable)
+    const MIN_WAIT_TIME_MS = 10000; // 10 secondes 
     const POLLING_INTERVAL_MS = 3000; // 3 secondes
 
     // --- Gestion des messages de chargement dynamiques ---
